@@ -1,0 +1,18 @@
+{
+  "schema_version": "quality-card-v1",
+  "created_at": "2026-11-20T08:12:57.928782+00:00",
+  "records": 15525,
+  "gold_records": 0,
+  "gold_conflicts": 0,
+  "source_hhi": 0.3767,
+  "span_evidence_rate": 0.3242,
+  "model_available": false,
+  "rule_model_agreement": null,
+  "review_rate": 0.0,
+  "state": "needs_annotation",
+  "actions": [
+    "collect_gold_labels",
+    "suggest_supplementary_source"
+  ],
+  "metrics_are_diagnostic": true
+}

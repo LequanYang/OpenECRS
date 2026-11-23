@@ -1,0 +1,4 @@
+# OpenECRS agent runtime
+# The chat service and PDF rendering only need the Python standard library.
+# pandas is required only to rebuild outputs/agent_ui/data.json from outputs/tables/.
+pandas>=2.0

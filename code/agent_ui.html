@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenECRS · AI Opportunity Radar</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111214'/%3E%3Ccircle cx='16' cy='16' r='5' fill='white'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#f6f7f8; --panel:#ffffff; --ink:#111214; --muted:#6b7078; --faint:#9aa0a6;
+    --line:#e6e7e9; --line-strong:#d7d9dc; --soft:#f2f3f4;
+    --accent:#111214; --accent-ink:#ffffff; --link:#2f6feb;
+    --radius:16px; --radius-sm:10px;
+    --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  .app{display:flex;height:100vh;overflow:hidden}
+
+  /* ---------------- sidebar ---------------- */
+  .side{width:272px;flex:0 0 272px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 14px 14px}
+  .brand{display:flex;align-items:center;gap:9px;padding:0 4px 16px}
+  .mark{width:26px;height:26px;border-radius:8px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;letter-spacing:.03em}
+  .brand-name{font-weight:600;font-size:14px;letter-spacing:.01em}
+  .brand-sub{font-size:11px;color:var(--faint);margin-top:1px}
+  .newchat{display:flex;align-items:center;gap:7px;width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--panel);font-weight:500;transition:.15s}
+  .newchat:hover{background:var(--soft)}
+  .side-label{font-size:11px;color:var(--faint);letter-spacing:.08em;margin:20px 6px 7px;text-transform:uppercase}
+  .quick{display:flex;flex-direction:column;gap:1px}
+  .quick button{text-align:left;padding:7px 9px;border-radius:8px;color:#3c4045;font-size:13px;line-height:1.45;transition:.12s}
+  .quick button:hover{background:var(--soft);color:var(--ink)}
+  .scen{display:flex;flex-direction:column;gap:1px;overflow-y:auto;margin:0 -4px;padding:0 4px}
+  .scen button{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;text-align:left;color:#3c4045;font-size:12px;transition:.12s}
+  .scen button:hover{background:var(--soft);color:var(--ink)}
+  .scen .rk{font-family:var(--mono);font-size:10.5px;color:var(--faint);min-width:16px;text-align:right}
+  .scen .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .scen .sc{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+  .side-foot{margin-top:auto;padding:12px 6px 0;border-top:1px solid var(--line);font-size:11px;color:var(--faint);line-height:1.7}
+  .side-foot b{color:var(--muted);font-weight:500}
+
+  /* ---------------- main ---------------- */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+  .topbar{height:58px;flex:0 0 58px;display:flex;align-items:center;gap:10px;padding:0 22px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.82);backdrop-filter:blur(10px);z-index:5;overflow:hidden}
+  .topbar .title{font-weight:600;font-size:14px}
+  .topbar .sub{color:var(--faint);font-size:11.5px;margin-left:2px}
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border:1px solid var(--line);border-radius:999px;font-size:11px;color:var(--muted);background:var(--panel)}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:#9aa0a6}
+  .pill.llm{border-color:#cfe8d9;background:#f4fbf6;color:#1b6b45}
+  .pill.llm .dot{background:#22a06b}
+  .icon-btn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line-strong);border-radius:9px;background:var(--panel);transition:.15s;color:#3c4045}
+  .icon-btn:hover{background:var(--soft)}
+  .icon-btn svg{width:16px;height:16px}
+  .icon-btn.ghost{border:none;background:transparent;color:var(--faint)}
+  .icon-btn.ghost:hover{background:var(--soft);color:var(--ink)}
+  .lang-switch{display:flex;border:1px solid var(--line-strong);border-radius:9px;overflow:hidden;margin-right:2px}
+  .lang-switch button{padding:6px 9px;font-size:11.5px;color:var(--muted);background:var(--panel);line-height:1}
+  .lang-switch button.active{background:var(--ink);color:#fff}
+  .modal{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:24px}
+  .modal[hidden]{display:none}
+  .modal-mask{position:absolute;inset:0;background:rgba(17,18,20,.3)}
+  .modal-card{position:relative;width:min(560px,100%);max-height:calc(100vh - 48px);overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px 26px;box-shadow:0 24px 64px rgba(17,18,20,.18)}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+  .modal-head b{font-size:16px}
+  .modal-sub{margin-left:8px;font-size:11px;color:var(--faint)}
+  .modal-desc{color:var(--muted);font-size:12.5px;line-height:1.8;margin:0 0 18px}
+  .field{display:block;margin:0 0 14px}
+  .field > span{display:block;font-size:12px;color:#3c4045;margin-bottom:6px}
+  .field input{width:100%;border:1px solid var(--line-strong);border-radius:10px;padding:9px 11px;font-family:var(--font);font-size:13px;color:var(--ink);background:#fff;outline:none}
+  .field input:focus{border-color:#b9bdc3}
+  .field-hint{display:block;font-size:11px;color:var(--faint);margin-top:5px}
+  .switch-row{display:flex;align-items:center;gap:9px;cursor:pointer;margin:6px 0 20px;font-size:12.5px;color:#3c4045}
+  .switch-row input{display:none}
+  .switch{width:34px;height:20px;border-radius:999px;background:#d7d9dc;position:relative;transition:.18s;flex:0 0 34px}
+  .switch:after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.18s;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+  .switch-row input:checked + .switch{background:#111214}
+  .switch-row input:checked + .switch:after{transform:translateX(14px)}
+  .switch-label{color:var(--muted)}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+  .test-result{margin-top:12px;font-size:12px;line-height:1.7;min-height:18px;color:var(--muted)}
+  .test-result.ok{color:#1b6b45}
+  .test-result.err{color:#b3261e}
+  .modal-foot{font-size:11px;color:var(--faint);line-height:1.7;margin:14px 0 0;border-top:1px solid var(--line);padding-top:12px}
+  .modal-foot code{font-family:var(--mono);font-size:10.5px;background:var(--soft);padding:1px 4px;border-radius:4px}
+  .eng-tag{display:inline-flex;align-items:center;border:1px solid #cfe8d9;background:#f4fbf6;color:#1b6b45;border-radius:999px;padding:1px 7px;font-size:10.5px}
+  .eng-tag.rule{border-color:var(--line);background:var(--soft);color:var(--muted)}
+  .llm-warn{margin:14px 0 0;padding:9px 12px;border-radius:10px;background:#fff8f4;border:1px solid #f3ddcf;color:#8a4b22;font-size:11.5px;line-height:1.7}
+  .top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .btn{padding:7px 12px;border-radius:9px;border:1px solid var(--line-strong);background:var(--panel);font-size:12.5px;transition:.15s;white-space:nowrap}
+  .btn:hover{background:var(--soft)}
+  .btn.primary{background:var(--ink);color:var(--accent-ink);border-color:var(--ink)}
+  .btn.primary:hover{opacity:.88}
+  .btn:disabled{opacity:.45;cursor:default}
+  .menu-btn{display:none}
+
+  .thread{flex:1;overflow-y:auto;padding:38px 26px 10px;scroll-behavior:smooth}
+  .thread-inner{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:34px;padding-bottom:14px}
+  .thread-inner.empty{justify-content:center;min-height:100%}
+
+  /* ---------------- messages ---------------- */
+  .msg{display:flex;gap:12px;align-items:flex-start}
+  .msg.user{justify-content:flex-end}
+  .avatar{width:26px;height:26px;flex:0 0 26px;border-radius:8px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;letter-spacing:.03em;margin-top:2px}
+  .bubble{max-width:78%;background:var(--ink);color:#fff;padding:11px 15px;border-radius:16px 16px 4px 16px;font-size:13.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+  .msg-body{flex:1;min-width:0}
+  .msg-head{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--faint);margin:0 0 10px 2px;flex-wrap:wrap}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px 30px;box-shadow:0 10px 30px rgba(17,18,20,.035)}
+  .tw{overflow-x:auto;margin:0 -4px;padding:0 4px}
+  .tw table{min-width:520px}
+  .card .kicker{font-size:10.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;margin:0 0 12px}
+  .advice{border-left:3px solid var(--ink);padding:3px 0 3px 16px;font-size:16px;line-height:1.8;font-weight:600;letter-spacing:-.005em}
+  .reply{color:var(--muted);font-size:13px;line-height:1.75;margin:15px 0 0}
+  .reply b{color:var(--ink);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:12px;margin:22px 0 6px}
+  .stat{background:var(--soft);border-radius:12px;padding:13px 15px}
+  .stat .lb{font-size:11px;color:var(--faint)}
+  .stat .vl{font-size:19px;font-weight:600;font-family:var(--mono);letter-spacing:-.02em;margin-top:1px;font-variant-numeric:tabular-nums}
+  .stat .vl small{font-size:11px;color:var(--faint);font-weight:400;font-family:var(--font);margin-left:2px}
+
+  .sec{margin:28px 0 0}
+  .sec-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#3c4045;margin:0 0 12px}
+  .sec-title:after{content:"";flex:1;height:1px;background:var(--line)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{font-size:11px;color:var(--faint);font-weight:500;background:transparent;border-bottom:1px solid var(--line-strong)}
+  td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:12px}
+  tr:last-child td{border-bottom:none}
+  td.name{font-weight:500}
+  .tag{display:inline-block;font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:6px;vertical-align:1px}
+  .best td{background:#fbfbfc}
+
+  .ev{margin:0;padding:0;list-style:none}
+  .ev li{padding:15px 0;border-bottom:1px dashed var(--line)}
+  .ev li:last-child{border-bottom:none}
+  .ev .meta{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--faint);flex-wrap:wrap}
+  .ev .src{border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--muted);background:#fafafa}
+  .ev .ttl{font-weight:600;font-size:13px;margin:3px 0 4px}
+  .ev blockquote{margin:0;padding:7px 11px;background:var(--soft);border-left:2px solid var(--line-strong);border-radius:0 8px 8px 0;color:#2c3035;font-size:12.5px;line-height:1.65}
+  .ev .url{font-size:10.5px;color:var(--faint);word-break:break-all;margin-top:3px}
+  .more{font-size:12px;color:var(--muted);margin-top:8px}
+  .more:hover{color:var(--ink);text-decoration:underline}
+
+  .actions{margin:10px 0 0;padding-left:18px;font-size:13px;line-height:1.75;color:#2c3035}
+  .actions li{margin:8px 0}
+  .risk{font-size:11.5px;color:var(--faint);margin:20px 0 0;padding-top:14px;border-top:1px solid var(--line);line-height:1.75}
+
+  .msg-actions{display:flex;align-items:center;gap:10px;margin-top:22px;flex-wrap:wrap}
+  .follow{margin:20px 0 0;display:flex;gap:9px;flex-wrap:wrap}
+  .chip{padding:8px 14px;border:1px solid var(--line-strong);border-radius:999px;font-size:12px;color:#3c4045;background:var(--panel);transition:.14s}
+  .chip:hover{background:var(--soft);border-color:var(--line-strong);color:var(--ink)}
+
+  /* ---------------- composer ---------------- */
+  .composer-wrap{flex:0 0 auto;padding:10px 22px 18px;background:linear-gradient(180deg,rgba(246,247,248,0),var(--bg) 26%)}
+  .composer{max-width:820px;margin:0 auto;background:var(--panel);border:1px solid var(--line-strong);border-radius:18px;padding:12px 14px 10px;box-shadow:0 6px 24px rgba(17,18,20,.05)}
+  .composer:focus-within{border-color:#c9ccd1;box-shadow:0 6px 28px rgba(17,18,20,.07)}
+  .chips{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 12px;min-height:0}
+  textarea{width:100%;border:none;outline:none;resize:none;background:transparent;font-family:var(--font);font-size:14px;line-height:1.6;color:var(--ink);max-height:150px;padding:2px 2px}
+  textarea::placeholder{color:var(--faint)}
+  .input-row{display:flex;align-items:flex-end;gap:10px}
+  .send{width:36px;height:36px;flex:0 0 36px;border-radius:12px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .send:hover{opacity:.86}
+  .send:disabled{opacity:.35}
+  .send svg{width:17px;height:17px}
+  .hint{max-width:820px;margin:11px auto 0;text-align:center;font-size:10.5px;color:var(--faint)}
+
+  /* ---------------- states ---------------- */
+  .typing{display:flex;gap:4px;align-items:center;padding:4px 0}
+  .typing i{width:6px;height:6px;border-radius:50%;background:#c4c7cb;animation:blink 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+  @keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+  .error{border-color:#f0c9c9;background:#fffafa}
+  .error .advice{border-color:#c0392b}
+  .muted-link{color:var(--link);text-decoration:none}
+  .muted-link:hover{text-decoration:underline}
+
+  .welcome h3{margin:0 0 14px;font-size:19px;line-height:1.5;letter-spacing:-.012em}
+  .welcome p{margin:0 0 24px;color:var(--muted);font-size:13px;line-height:1.85;max-width:660px;text-wrap:pretty}
+  .welcome .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin:30px 0 6px}
+  .welcome .g{background:var(--soft);border-radius:14px;padding:20px 22px}
+  .welcome .gi{width:32px;height:32px;border-radius:9px;background:var(--panel);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);margin-bottom:14px}
+  .welcome .gi svg{width:15px;height:15px}
+  .welcome .g b{font-size:13px;display:block;margin-bottom:7px}
+  .welcome .g span{font-size:12px;line-height:1.75;color:var(--muted);text-wrap:pretty}
+
+  .scrim{display:none}
+  @media (max-width:1020px){
+    .topbar .sub{display:none}
+    .topbar .pill{display:none}
+    .lang-switch{margin-right:0}
+    .top-actions .btn{padding:6px 10px;font-size:12px}
+    .side{position:fixed;left:0;top:0;bottom:0;z-index:30;transform:translateX(-105%);transition:transform .22s ease;box-shadow:0 12px 40px rgba(0,0,0,.12)}
+    .app.nav-open .side{transform:none}
+    .menu-btn{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid var(--line-strong);border-radius:9px;background:var(--panel);margin-right:2px}
+    .app.nav-open .scrim{display:block;position:fixed;inset:0;background:rgba(17,18,20,.28);z-index:20}
+    .welcome .grid{grid-template-columns:1fr}
+    .bubble{max-width:88%}
+    .thread{padding:20px 14px 6px}
+    .topbar{padding:0 14px}
+    .composer-wrap{padding:8px 12px 14px}
+    .card{padding:16px}
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="scrim" id="scrim"></div>
+  <aside class="side" id="side">
+    <div class="brand">
+      <div class="mark">OE</div>
+      <div>
+        <div class="brand-name">OpenECRS</div>
+        <div class="brand-sub" id="brandSub">AI Opportunity Radar</div>
+      </div>
+    </div>
+    <button class="newchat" id="newchat">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      <span id="newChatLabel">New chat</span>
+    </button>
+    <div class="side-label" id="quickLabel">Quick questions</div>
+    <div class="quick" id="quick"></div>
+    <div class="side-label" id="scenLabel">Scenarios</div>
+    <div class="scen" id="scen"></div>
+    <div class="side-foot" id="sideFoot">
+      <b>Rule-based evidence review</b> · 15,525 records<br>Data cut-off 2026-11-20 · reproducible offline
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Open sidebar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <span class="title">OpenECRS</span>
+      <span class="sub" id="subTitle">· AI Opportunity Radar</span>
+      <span class="pill rule" id="enginePill"><span class="dot"></span>Rule engine</span>
+      <div class="top-actions">
+        <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
+          <button data-lang="en" class="active">EN</button>
+          <button data-lang="zh">中文</button>
+        </div>
+        <button class="icon-btn" id="settingsBtn" title="Connect an LLM API" aria-label="Connect an LLM API">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.36.43.66.79.81H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <button class="btn" id="pdfTop" title="Export the last answer as a PDF brief">Export PDF</button>
+      </div>
+    </div>
+
+    <div class="thread" id="thread"><div class="thread-inner" id="threadInner"></div></div>
+
+    <div class="modal" id="modal" hidden>
+      <div class="modal-mask" id="modalMask"></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div><b id="modalTitle">Connect an LLM API</b><span class="modal-sub" id="modalSub">OpenAI-compatible endpoint</span></div>
+          <button class="icon-btn ghost" id="closeModal" aria-label="Close settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <p class="modal-desc" id="modalDesc">Works with any OpenAI-compatible endpoint (DeepSeek / OpenAI / Moonshot / DashScope compatible mode / local Ollama). When enabled, the model only rewrites the one-sentence advice and explanation; numbers, ranking and evidence still come from the offline engine. Turn it off to stay fully offline.</p>
+        <label class="field"><span>Base URL</span><input id="fBase" type="text" placeholder="https://api.deepseek.com/v1" spellcheck="false"></label>
+        <label class="field"><span id="fModelLabel">Model</span><input id="fModel" type="text" placeholder="deepseek-chat" spellcheck="false"></label>
+        <label class="field"><span>API Key</span><input id="fKey" type="password" placeholder="sk-..." autocomplete="off"><small class="field-hint" id="keyHint"></small></label>
+        <label class="switch-row"><input type="checkbox" id="fEnabled"><span class="switch"></span><span class="switch-label" id="switchLabel">Use the LLM (fully offline when off)</span></label>
+        <div class="modal-actions">
+          <button class="btn" id="testBtn">Test connection</button>
+          <button class="btn primary" id="saveBtn">Save</button>
+        </div>
+        <div class="test-result" id="testResult"></div>
+        <p class="modal-foot" id="modalFoot">The key is stored locally in <code>outputs/agent_ui/settings.json</code> (mode 0600) and is only sent to the endpoint you configure. Environment variables <code>DEEPSEEK_API_KEY</code> / <code>OPENAI_API_KEY</code> / <code>LLM_API_KEY</code> are also supported.</p>
+      </div>
+    </div>
+
+    <div class="composer-wrap">
+      <div class="composer">
+        <div class="chips" id="chips"></div>
+        <div class="input-row">
+          <textarea id="input" rows="1" placeholder="Ask a question, or pick a suggestion above…"></textarea>
+          <button class="send" id="send" aria-label="Send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="hint" id="footHint">Generated by the offline rule engine · confidences are not calibrated · PDF contains “one-sentence advice + detailed data”</div>
+    </div>
+  </main>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const thread = $('thread'), inner = $('threadInner');
+let SESSION = (crypto.randomUUID ? crypto.randomUUID() : 's-' + Date.now());
+let LAST_ANSWER = null;
+let SETTINGS = null;
+let busy = false;
+
+const LANG = (() => {
+  const p = new URLSearchParams(location.search).get('lang');
+  if (p === 'en' || p === 'zh') return p;
+  return localStorage.getItem('openecrs-lang') || 'en';
+})();
+
+const I18N = {
+  en: {
+    title: 'OpenECRS · AI Opportunity Radar',
+    tagline: 'AI Opportunity Radar', subTitle: '· AI Opportunity Radar',
+    newChat: 'New chat', quickLabel: 'Quick questions', scenLabel: 'Scenarios',
+    exportPdf: 'Export PDF', settingsTitle: 'Connect an LLM API',
+    engineRule: 'Rule engine', engineKey: 'API key needed', engineLlm: 'LLM · ',
+    quick: [
+      'Which scenario should we prioritise?',
+      'Compare Security, Compliance & Privacy vs Multi-agent',
+      'Show evidence for Knowledge Management & Document QA',
+      'Give me a 3-month execution plan',
+      'Why does Customer Service have high business value?'
+    ],
+    sideFoot: (meta) => `<b>Rule-based evidence review</b> · ${meta.evidence_records.toLocaleString()} records<br>Data cut-off ${meta.data_cutoff} · reproducible offline<br>${meta.records_clean.toLocaleString()} cleaned records · ${meta.high_conf_samples.toLocaleString()} high-confidence samples`,
+    welcomeHead: '12 AI scenarios, explained with auditable evidence — ready to export as a brief.',
+    welcomeText: 'Built on 45,306 cleaned records, 15,525 demand units and record-level evidence review. Pick a direction and I will give one conclusion, then the detailed data and quoted evidence; every answer can be exported as a PDF brief. You can optionally connect an LLM API (top-right); it is fully offline when disabled.',
+    tile1: 'Four-dimension score', tile1Text: 'Demand, supply gap, feasibility and business value, AHP weights 45/25/18/12.',
+    tile2: 'Auditable evidence', tile2Text: 'Every conclusion carries the quoted span, source, year and confidence, traceable to the original record.',
+    tile3: 'Direct PDF brief', tile3Text: 'One-sentence advice + detailed data + evidence excerpts + action plan, one click.',
+    welcomeChips: ['Which scenario should we prioritise?', 'Compare Security, Compliance & Privacy vs Multi-agent', 'Show evidence for Knowledge Management & Document QA', 'Give me a 2-week PoC plan'],
+    msgRule: 'OpenECRS · rule-based evidence review',
+    typing: 'OpenECRS · retrieving evidence',
+    errorHead: 'OpenECRS · something went wrong',
+    errorBody: 'Make sure the local service is running (python code/agent_app.py), then retry.',
+    answer: 'answer',
+    kicker: 'One-sentence advice',
+    rankingTitle: 'Opportunity score ranking', rankingTop: (n) => `Opportunity ranking (top ${n})`,
+    thRank: 'Rank', thScenario: 'Scenario', thOpportunity: 'Opportunity', thDemand: 'Demand',
+    thGap: 'Gap', thFeasibility: 'Feasibility', thValue: 'Value', thRoute: 'Route',
+    comparisonTitle: 'Scenario comparison', metricLabel: 'Metric',
+    metricsTitle: 'Scenario scorecard',
+    mSamples: 'Samples', mDemand: 'Demand signal', mPayment: 'Payment / value', mSource: 'Source mix',
+    mSupply: 'Supply proxy', mBarrier: 'Expert barrier', mRoute: 'Recommended route',
+    samplesValue: (n, share) => `${n} high-confidence samples (${share} of demand units)`,
+    growthLabel: 'growth', needLabel: 'need_rate', entropyLabel: 'source_entropy',
+    supplyValue: (m, stars) => `repos ${m.repo_n} / stars ${stars} / papers ${m.paper_n} / Show HN ${m.show_n}`,
+    evidenceTitle: 'Evidence excerpts (quoted spans)',
+    confidenceLabel: (v) => `confidence ${v}`, fourGates: 'four gates passed',
+    moreEvidence: (n) => `Show ${n} more evidence items`,
+    actionsTitle: 'Action plan',
+    riskNote: (text) => `Scope & limits: ${text} (full data notes in the PDF brief)`,
+    exportBrief: 'Export PDF brief', copyBtn: 'Copy summary', copied: 'Copied',
+    copyFail: 'Copy failed, please select the text manually.',
+    pdfGenerating: 'Generating…', pdfFailed: 'PDF export failed: ', fallbackFilename: 'OpenECRS_brief.pdf',
+    llmFallback: (err) => `Fell back to the rule result: ${err}`,
+    copyTemplate: (a) => `[One-sentence advice] ${a.advice}\n[Scenarios] ${(a.scenarios || []).join(', ')}\n[Question] ${a.question || ''}`,
+    noAnswer: 'Start a conversation before exporting a PDF brief.',
+    scenarioAsk: (name) => `Is “${name}” worth building? Give me advice and evidence.`,
+    testOk: (d) => `Connected · ${d.model} · ${d.latency_ms} ms · reply: ${d.reply || 'ok'}`,
+    testFail: (e) => `Connection failed: ${e || 'unknown error'}`,
+    testing: 'Connecting to the model…', saving: 'Saving…',
+    saved: 'Saved. The next answer will use these settings.',
+    savedNoKey: 'Saved, but there is no API key yet: answers will fall back to the rule engine.',
+    saveFailed: (e) => `Save failed: ${e}`,
+    keySaved: (hint, env) => `Saved key ${hint}${env}; leave blank to keep it`,
+    keyMissing: 'No key yet; you can also leave it blank and use DEEPSEEK_API_KEY / OPENAI_API_KEY.',
+    envNote: ' (from environment)',
+    ruleHint: 'Generated by the offline rule engine · confidences are not calibrated · PDF contains “one-sentence advice + detailed data”',
+    llmHint: 'Numbers and evidence from the offline rule engine · one-sentence advice rewritten by the LLM · confidences are not calibrated'
+  },
+  zh: {
+    title: 'OpenECRS · AI 应用场景机会雷达',
+    tagline: 'AI 应用场景机会雷达', subTitle: '· AI 应用场景机会雷达',
+    newChat: '新对话', quickLabel: '快速提问', scenLabel: '场景索引',
+    exportPdf: '导出 PDF', settingsTitle: '接入大模型 API',
+    engineRule: '规则引擎', engineKey: '待配置 Key', engineLlm: '大模型 · ',
+    quick: ['哪个场景最值得优先做？', '对比 安全合规 和 多智能体', '知识管理与文档问答 的证据',
+            '给我一个三个月内的落地建议', '客户服务为什么价值高？'],
+    sideFoot: (meta) => `<b>规则证据审查</b> · ${meta.evidence_records.toLocaleString()} 条<br>数据截至 ${meta.data_cutoff} · 离线可复现<br>${meta.records_clean.toLocaleString()} 条清洗记录 · ${meta.high_conf_samples.toLocaleString()} 条高置信样本`,
+    welcomeHead: '把 12 个 AI 场景的机会讲清楚，并直接给出可导出的建议书。',
+    welcomeText: '基于 45,306 条清洗记录、15,525 条需求单元与逐条证据审查。你可以点选一个方向，我会先给一句结论，再给出详细数据和原文证据，并支持一键导出 PDF；右上角可接入大模型 API，关闭时完全离线。',
+    tile1: '四维评分', tile1Text: '需求、缺口、可行性、价值四维，AHP 加权 45/25/18/12。',
+    tile2: '证据可核查', tile2Text: '每条结论附原文 span、来源、年份与置信度，可回溯到原始记录。',
+    tile3: '直接出 PDF', tile3Text: '一句话建议 + 详细数据 + 证据摘录 + 行动建议，一键下载。',
+    welcomeChips: ['哪个场景最值得优先做？', '对比 安全合规 和 多智能体', '知识管理与文档问答 的证据', '给我一个 2 周 PoC 方案'],
+    msgRule: 'OpenECRS · 规则证据审查',
+    typing: 'OpenECRS · 检索证据中',
+    errorHead: 'OpenECRS · 出错了',
+    errorBody: '请确认本地服务仍在运行（python code/agent_app.py），然后重试。',
+    answer: '回答',
+    kicker: '一句话建议',
+    rankingTitle: '12 个场景机会总分排名', rankingTop: (n) => `机会总分排名（前 ${n}）`,
+    thRank: '排名', thScenario: '场景', thOpportunity: '机会分', thDemand: '需求',
+    thGap: '缺口', thFeasibility: '可行性', thValue: '价值', thRoute: '建议路线',
+    comparisonTitle: '场景对比', metricLabel: '指标',
+    metricsTitle: '场景评分明细',
+    mSamples: '样本量', mDemand: '需求信号', mPayment: '付费/价值信号', mSource: '来源结构',
+    mSupply: '供给镜像', mBarrier: '专家壁垒', mRoute: '建议路线',
+    samplesValue: (n, share) => `${n} 条高置信样本（占比 ${share}）`,
+    growthLabel: '增长斜率', needLabel: 'need_rate', entropyLabel: 'source_entropy',
+    supplyValue: (m, stars) => `仓库 ${m.repo_n} / Star ${stars} / 论文 ${m.paper_n} / Show HN ${m.show_n}`,
+    evidenceTitle: '证据摘录（原文 span）',
+    confidenceLabel: (v) => `置信度 ${v}`, fourGates: '四门通过',
+    moreEvidence: (n) => `展开其余 ${n} 条证据`,
+    actionsTitle: '行动建议',
+    riskNote: (text) => `口径与局限：${text}（完整免责与数据口径见 PDF 建议书）`,
+    exportBrief: '导出 PDF 建议书', copyBtn: '复制结论', copied: '已复制',
+    copyFail: '复制失败，请手动选择文本',
+    pdfGenerating: '正在生成…', pdfFailed: 'PDF 导出失败：', fallbackFilename: 'AI应用场景建议书.pdf',
+    llmFallback: (err) => `已回退规则结果：${err}`,
+    copyTemplate: (a) => `【一句话建议】${a.advice}\n【场景】${(a.scenarios || []).join('、')}\n【问题】${a.question || ''}`,
+    noAnswer: '先进行一次对话，再导出 PDF 建议书。',
+    scenarioAsk: (name) => `「${name}」值不值得做？给我建议和证据。`,
+    testOk: (d) => `连接成功 · ${d.model} · ${d.latency_ms} ms · 回复：${d.reply || 'ok'}`,
+    testFail: (e) => `连接失败：${e || '未知错误'}`,
+    testing: '正在连接模型…', saving: '保存中…',
+    saved: '已保存。下一条回答将使用当前设置。',
+    savedNoKey: '已保存，但还没有 API Key：回答会回退规则结果。',
+    saveFailed: (e) => `保存失败：${e}`,
+    keySaved: (hint, env) => `已保存 Key ${hint}${env}；留空表示不修改`,
+    keyMissing: '还没有 Key；也可以留空并使用环境变量 DEEPSEEK_API_KEY / OPENAI_API_KEY',
+    envNote: '（来自环境变量）',
+    ruleHint: '回答由离线规则证据引擎生成 · 置信度未经人工校准 · 导出 PDF 含「一句话建议 + 详细数据」',
+    llmHint: '数字与证据来自离线规则证据引擎 · 一句话建议由大模型改写 · 置信度未经人工校准'
+  }
+};
+const T = I18N[LANG] || I18N.en;
+function t(key, ...args) {
+  const v = T[key];
+  return typeof v === 'function' ? v(...args) : v;
+}
+
+function esc(s){return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmt(v, d=2){const n = Number(v); return Number.isFinite(n) ? n.toFixed(d) : '—';}
+function pct(v){const n = Number(v); return Number.isFinite(n) ? (n*100).toFixed(1) + '%' : '—';}
+function now(){const d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');}
+function scrollBottom(smooth=true){thread.scrollTo({top: thread.scrollHeight, behavior: smooth ? 'smooth' : 'auto'});}
+
+function applyStatic(){
+  document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : 'en';
+  document.title = t('title');
+  $('brandSub').textContent = t('tagline');
+  $('newChatLabel').textContent = t('newChat');
+  $('quickLabel').textContent = t('quickLabel');
+  $('scenLabel').textContent = t('scenLabel');
+  $('subTitle').textContent = t('subTitle');
+  $('pdfTop').textContent = t('exportPdf');
+  $('settingsBtn').title = t('settingsTitle');
+  $('settingsBtn').setAttribute('aria-label', t('settingsTitle'));
+  $('input').placeholder = LANG === 'zh' ? '描述你的问题，或点上面的建议…' : 'Ask a question, or pick a suggestion above…';
+  $('footHint').textContent = t('ruleHint');
+  $('modalTitle').textContent = t('settingsTitle');
+  $('modalSub').textContent = LANG === 'zh' ? 'OpenAI 兼容接口' : 'OpenAI-compatible endpoint';
+  $('fModelLabel').textContent = LANG === 'zh' ? '模型' : 'Model';
+  $('switchLabel').textContent = LANG === 'zh' ? '启用大模型（关闭时完全离线）' : 'Use the LLM (fully offline when off)';
+  $('testBtn').textContent = LANG === 'zh' ? '测试连接' : 'Test connection';
+  $('saveBtn').textContent = LANG === 'zh' ? '保存' : 'Save';
+  $('modalDesc').textContent = LANG === 'zh'
+    ? '支持 DeepSeek / OpenAI / Moonshot / 通义 DashScope 兼容模式 / 本地 Ollama 等 OpenAI 兼容接口。开启后，模型只负责改写「一句话建议 + 说明」，数字、排名与证据仍来自离线证据引擎；关闭时完全离线。'
+    : 'Works with any OpenAI-compatible endpoint (DeepSeek / OpenAI / Moonshot / DashScope compatible mode / local Ollama). When enabled, the model only rewrites the one-sentence advice and explanation; numbers, ranking and evidence still come from the offline engine. Turn it off to stay fully offline.';
+  $('modalFoot').innerHTML = LANG === 'zh'
+    ? 'Key 只保存在本机 <code>outputs/agent_ui/settings.json</code>（0600 权限），除你填写的接口外不会发往任何地方；也支持环境变量 <code>DEEPSEEK_API_KEY</code> / <code>OPENAI_API_KEY</code> / <code>LLM_API_KEY</code>。'
+    : 'The key is stored locally in <code>outputs/agent_ui/settings.json</code> (mode 0600) and is only sent to the endpoint you configure. Environment variables <code>DEEPSEEK_API_KEY</code> / <code>OPENAI_API_KEY</code> / <code>LLM_API_KEY</code> are also supported.';
+  $('menuBtn').setAttribute('aria-label', LANG === 'zh' ? '打开侧边栏' : 'Open sidebar');
+  $('send').setAttribute('aria-label', LANG === 'zh' ? '发送' : 'Send');
+  document.querySelectorAll('#langSwitch button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+}
+
+function welcome(){
+  inner.innerHTML = `
+    <div class="msg assistant">
+      <div class="avatar">OE</div>
+      <div class="msg-body">
+        <div class="msg-head">${t('msgRule')}</div>
+        <div class="card welcome">
+          <h3>${t('welcomeHead')}</h3>
+          <p>${t('welcomeText')}</p>
+          <div class="grid">
+            <div class="g"><div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20V8"/></svg></div><b>${t('tile1')}</b><span>${t('tile1Text')}</span></div>
+            <div class="g"><div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 13h6M10 17h4"/></svg></div><b>${t('tile2')}</b><span>${t('tile2Text')}</span></div>
+            <div class="g"><div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10"/><path d="M8 11l4 4 4-4"/><path d="M5 20h14"/></svg></div><b>${t('tile3')}</b><span>${t('tile3Text')}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  inner.classList.add('empty');
+  setChips(t('welcomeChips'));
+}
+
+function setChips(list){
+  const box = $('chips');
+  box.innerHTML = '';
+  (list || []).slice(0, 4).forEach(q => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.textContent = q;
+    b.onclick = () => send(q);
+    box.appendChild(b);
+  });
+}
+
+function addUser(text){
+  const el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = `<div class="bubble">${esc(text)}</div>`;
+  inner.classList.remove('empty');
+  inner.appendChild(el);
+  scrollBottom();
+}
+
+function addTyping(){
+  const el = document.createElement('div');
+  el.className = 'msg assistant'; el.id = 'typing';
+  el.innerHTML = `<div class="avatar">OE</div><div class="msg-body"><div class="msg-head">${t('typing')}</div>
+    <div class="card"><div class="typing"><i></i><i></i><i></i></div></div></div>`;
+  inner.classList.remove('empty');
+  inner.appendChild(el);
+  scrollBottom();
+}
+function removeTyping(){ const el = $('typing'); if (el) el.remove(); }
+
+function statsTiles(m){
+  const labels = LANG === 'zh'
+    ? ['机会总分', '需求强度', '供给缺口', '技术可行性', '商业价值']
+    : ['Opportunity', 'Demand', 'Supply gap', 'Feasibility', 'Business value'];
+  const vals = [fmt(m.opportunity, 1), fmt(m.demand), fmt(m.gap), fmt(m.feasibility), fmt(m.value)];
+  return `<div class="stats">${labels.map((k, i) => `<div class="stat"><div class="lb">${k}</div><div class="vl">${vals[i]}</div></div>`).join('')}</div>`;
+}
+
+function rankingTable(rows, label){
+  const body = rows.map(r => `
+    <tr class="${r.rank === 1 ? 'best' : ''}">
+      <td class="num">${r.rank}</td>
+      <td class="name">${esc(r.scenario)}</td>
+      <td class="num">${fmt(r.opportunity,1)}</td>
+      <td class="num">${fmt(r.demand)}</td>
+      <td class="num">${fmt(r.gap)}</td>
+      <td class="num">${fmt(r.feasibility)}</td>
+      <td class="num">${fmt(r.value)}</td>
+      <td>${esc(r.route)}</td>
+    </tr>`).join('');
+  const title = label || (rows.length >= 12 ? t('rankingTitle') : t('rankingTop', rows.length));
+  return `<div class="sec"><div class="sec-title">${title}</div>
+    <div class="tw"><table><thead><tr><th>${t('thRank')}</th><th>${t('thScenario')}</th><th class="num">${t('thOpportunity')}</th><th class="num">${t('thDemand')}</th><th class="num">${t('thGap')}</th><th class="num">${t('thFeasibility')}</th><th class="num">${t('thValue')}</th><th>${t('thRoute')}</th></tr></thead>
+    <tbody>${body}</tbody></table></div></div>`;
+}
+
+function comparisonTable(rows){
+  const metricKey = t('metricLabel');
+  const names = Object.keys(rows[0] || {}).filter(k => k !== metricKey && k !== '指标' && k !== 'Metric');
+  const head = `<tr><th>${metricKey}</th>${names.map(n => `<th>${esc(n)}</th>`).join('')}</tr>`;
+  const body = rows.map(r => {
+    const metric = r[metricKey] ?? r['指标'] ?? r['Metric'] ?? '';
+    return `<tr><td class="name">${esc(metric)}</td>${names.map(n => `<td>${esc(r[n])}</td>`).join('')}</tr>`;
+  }).join('');
+  return `<div class="sec"><div class="sec-title">${t('comparisonTitle')}</div><div class="tw"><table><thead>${head}</thead><tbody>${body}</tbody></table></div></div>`;
+}
+
+function metricsTable(m){
+  const stars = Number(m.repo_stars_sum).toLocaleString();
+  const rows = [
+    [t('mSamples'), t('samplesValue', m.n_docs, pct(m.share))],
+    [t('mDemand'), `${t('needLabel')} ${fmt(m.need_rate)} · ${t('growthLabel')} ${Number(m.growth_slope) >= 0 ? '+' : ''}${pct(m.growth_slope)}`],
+    [t('mPayment'), `wtp_rate ${fmt(m.wtp_rate)} · value_rate ${fmt(m.value_rate)}`],
+    [t('mSource'), `${t('entropyLabel')} ${fmt(m.source_entropy)} · ${esc(m.top_sources || '—')}`],
+    [t('mSupply'), t('supplyValue', m, stars)],
+    [t('mBarrier'), fmt(m.barrier)],
+    [t('mRoute'), esc(m.route)]
+  ];
+  return `<div class="sec"><div class="sec-title">${t('metricsTitle')}</div><table><tbody>${rows.map(([k,v]) => `<tr><td class="name" style="width:26%">${k}</td><td>${v}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function evidenceList(list, limit = 3){
+  if (!list || !list.length) return '';
+  const shown = list.slice(0, limit);
+  const rest = list.slice(limit);
+  const item = (e) => `
+    <li>
+      <div class="meta"><span class="src">${esc(e.source || '')}</span><span>${esc(e.year || '')}</span>
+        <span>${t('confidenceLabel', fmt(e.confidence))}</span>${e.is_opportunity ? `<span class="src">${t('fourGates')}</span>` : ''}
+        ${e.scenario ? `<span class="src">${esc(e.scenario)}</span>` : ''}</div>
+      <div class="ttl">${esc(e.title)}</div>
+      <blockquote>${esc(e.quote)}</blockquote>
+    </li>`;
+  let html = `<div class="sec"><div class="sec-title">${t('evidenceTitle')}</div><ul class="ev">${shown.map(item).join('')}</ul>`;
+  if (rest.length) html += `<div style="display:none"><ul class="ev">${rest.map(item).join('')}</ul></div><button class="more" onclick="this.previousElementSibling.style.display='block';this.remove()">${t('moreEvidence', rest.length)}</button>`;
+  return html + '</div>';
+}
+
+function actionList(list){
+  if (!list || !list.length) return '';
+  return `<div class="sec"><div class="sec-title">${t('actionsTitle')}</div><ol class="actions">${list.map(a => `<li>${esc(a)}</li>`).join('')}</ol></div>`;
+}
+
+function renderAnswer(a){
+  const names = a.scenarios || [];
+  const single = names.length === 1 ? (a.metrics || {})[names[0]] : null;
+  const eng = a.engine || {kind: 'rule'};
+  const engTag = eng.kind === 'llm'
+    ? `<span class="eng-tag">${t('engineLlm')}${esc(eng.model || '')}</span>`
+    : `<span class="eng-tag rule">${t('engineRule')}</span>`;
+  let html = `<div class="msg assistant"><div class="avatar">OE</div><div class="msg-body">
+    <div class="msg-head">OpenECRS · ${esc(a.heading || t('answer'))} · ${now()} ${engTag}</div>
+    <div class="card">
+      <div class="kicker">${t('kicker')}</div>
+      <div class="advice">${esc(a.advice)}</div>`;
+  if (a.reply) html += `<p class="reply">${a.reply}</p>`;
+  if (a.llm_error) html += `<div class="llm-warn">${t('llmFallback', esc(a.llm_error))}</div>`;
+  if (single) html += statsTiles(single);
+  if (names.length === 2 && a.metrics) {
+    html += `<div class="stats">${names.map(n => {
+      const m = a.metrics[n] || {};
+      const label = LANG === 'zh' ? `${esc(n)} · 机会分` : `${esc(n)} · opportunity`;
+      return `<div class="stat"><div class="lb">${label}</div><div class="vl">${fmt(m.opportunity,1)}</div></div>`;
+    }).join('')}</div>`;
+  }
+  if (a.ranking && a.ranking.length) html += rankingTable(a.ranking);
+  if (a.comparison && a.comparison.length) html += comparisonTable(a.comparison);
+  if (single) html += metricsTable(single);
+  if (a.evidence && a.evidence.length) html += evidenceList(a.evidence);
+  if (a.actions && a.actions.length) html += actionList(a.actions);
+  if (a.risks && a.risks.length) html += `<div class="risk">${t('riskNote', esc(a.risks[0]))}</div>`;
+  html += `<div class="msg-actions">
+      <button class="btn primary" data-pdf>${t('exportBrief')}</button>
+      <button class="btn" data-copy>${t('copyBtn')}</button>
+    </div></div></div></div>`;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = html;
+  const node = wrap.firstElementChild;
+  node.querySelector('[data-pdf]').onclick = () => exportPDF(node);
+  node.querySelector('[data-copy]').onclick = (ev) => copyAnswer(a, ev.target);
+  inner.classList.remove('empty');
+  inner.appendChild(node);
+  if (a.chips && a.chips.length) setChips(a.chips);
+  LAST_ANSWER = a;
+  scrollBottom();
+}
+
+function renderError(message){
+  const el = document.createElement('div');
+  el.className = 'msg assistant';
+  el.innerHTML = `<div class="avatar">OE</div><div class="msg-body"><div class="msg-head">${t('errorHead')}</div>
+    <div class="card error"><div class="advice">${esc(message)}</div>
+    <p class="reply">${t('errorBody')}</p></div></div>`;
+  inner.classList.remove('empty');
+  inner.appendChild(el);
+  scrollBottom();
+}
+
+async function send(text){
+  if (busy) return;
+  const message = (text || $('input').value || '').trim();
+  if (!message) return;
+  busy = true;
+  $('send').disabled = true;
+  $('input').value = '';
+  $('input').style.height = 'auto';
+  addUser(message);
+  addTyping();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session: SESSION, message, lang: LANG})
+    });
+    const data = await res.json();
+    removeTyping();
+    if (!res.ok || data.error) { renderError(data.error || ('HTTP ' + res.status)); return; }
+    renderAnswer(data);
+  } catch (err) {
+    removeTyping();
+    renderError((LANG === 'zh' ? '连不上本地智能体服务：' : 'Cannot reach the local agent service: ') + err.message);
+  } finally {
+    busy = false;
+    $('send').disabled = false;
+    $('input').focus();
+  }
+}
+
+async function exportPDF(cardNode){
+  const note = cardNode ? cardNode.querySelector('[data-pdf]') : null;
+  const prev = note ? note.textContent : '';
+  if (note) { note.disabled = true; note.textContent = t('pdfGenerating'); }
+  try {
+    const res = await fetch('/api/pdf', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session: SESSION, lang: LANG})
+    });
+    const ctype = res.headers.get('Content-Type') || '';
+    if (ctype.includes('application/json')) {
+      const data = await res.json();
+      if (data.fallback) { window.open(data.fallback, '_blank'); return; }
+      throw new Error(data.error || data.hint || (LANG === 'zh' ? 'PDF 生成失败' : 'PDF generation failed'));
+    }
+    const blob = await res.blob();
+    const name = (res.headers.get('Content-Disposition') || '').match(/filename\*=UTF-8''([^;]+)/);
+    const filename = name ? decodeURIComponent(name[1]) : t('fallbackFilename');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  } catch (err) {
+    alert(t('pdfFailed') + err.message);
+  } finally {
+    if (note) { note.disabled = false; note.textContent = prev || t('exportBrief'); }
+  }
+}
+
+function copyAnswer(a, btn){
+  navigator.clipboard.writeText(t('copyTemplate', a)).then(() => {
+    const old = btn.textContent; btn.textContent = t('copied'); setTimeout(() => btn.textContent = old, 1200);
+  }).catch(() => alert(t('copyFail')));
+}
+
+async function loadSidebar(){
+  try {
+    const res = await fetch('/api/data');
+    const data = await res.json();
+    const meta = Object.assign({
+      evidence_records: 15525, data_cutoff: '2026-11-20', records_clean: 45306, high_conf_samples: 2848
+    }, data.meta || {});
+    $('sideFoot').innerHTML = t('sideFoot', meta);
+    const scen = $('scen');
+    scen.innerHTML = '';
+    (data.scenarios || []).forEach(s => {
+      const name = LANG === 'zh' ? s.name : (s.name_en || s.name);
+      const b = document.createElement('button');
+      b.innerHTML = `<span class="rk">${s.rank}</span><span class="nm">${esc(name)}</span><span class="sc">${Number(s.opportunity).toFixed(1)}</span>`;
+      b.onclick = () => { closeNav(); send(t('scenarioAsk', name)); };
+      scen.appendChild(b);
+    });
+  } catch (err) { /* keep fallback footer */ }
+}
+
+function bindChips(){
+  const q = $('quick');
+  q.innerHTML = '';
+  (t('quick') || []).forEach(text => {
+    const b = document.createElement('button');
+    b.textContent = text;
+    b.onclick = () => { closeNav(); send(text); };
+    q.appendChild(b);
+  });
+}
+
+function openNav(){ $('app').classList.add('nav-open'); }
+function closeNav(){ $('app').classList.remove('nav-open'); }
+
+function switchLang(lang){
+  localStorage.setItem('openecrs-lang', lang);
+  const url = new URL(location.href);
+  url.searchParams.set('lang', lang);
+  url.searchParams.delete('q');
+  location.replace(url.toString());
+}
+
+$('menuBtn').onclick = openNav;
+$('scrim').onclick = closeNav;
+$('newchat').onclick = () => {
+  SESSION = (crypto.randomUUID ? crypto.randomUUID() : 's-' + Date.now());
+  inner.innerHTML = '';
+  welcome();
+  closeNav();
+  setChips(t('welcomeChips'));
+  $('input').focus();
+};
+$('send').onclick = () => send();
+$('pdfTop').onclick = () => {
+  if (!LAST_ANSWER) { alert(t('noAnswer')); return; }
+  exportPDF(null);
+};
+$('input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
+});
+$('input').addEventListener('input', (e) => {
+  e.target.style.height = 'auto';
+  e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
+});
+document.querySelectorAll('#langSwitch button').forEach(b => {
+  b.addEventListener('click', () => switchLang(b.dataset.lang));
+});
+
+function updateEnginePill(){
+  const pill = $('enginePill');
+  if (!pill) return;
+  if (SETTINGS && SETTINGS.ready) {
+    pill.className = 'pill llm';
+    pill.innerHTML = `<span class="dot"></span>${t('engineLlm')}${esc(SETTINGS.model || '')}`;
+  } else if (SETTINGS && SETTINGS.enabled) {
+    pill.className = 'pill';
+    pill.innerHTML = `<span class="dot"></span>${t('engineKey')}`;
+  } else {
+    pill.className = 'pill rule';
+    pill.innerHTML = `<span class="dot"></span>${t('engineRule')}`;
+  }
+  const hint = $('footHint');
+  if (hint) hint.textContent = (SETTINGS && SETTINGS.ready) ? t('llmHint') : t('ruleHint');
+}
+
+async function loadSettings(){
+  try {
+    const res = await fetch('/api/settings');
+    SETTINGS = await res.json();
+    updateEnginePill();
+  } catch (err) { /* keep default rule mode */ }
+}
+
+function fillSettingsForm(){
+  $('fBase').value = SETTINGS ? SETTINGS.base_url : '';
+  $('fModel').value = SETTINGS ? SETTINGS.model : '';
+  $('fEnabled').checked = !!(SETTINGS && SETTINGS.enabled);
+  $('fKey').value = '';
+  const hint = $('keyHint');
+  if (SETTINGS && SETTINGS.has_key) {
+    const envNote = SETTINGS.key_source && SETTINGS.key_source.indexOf('env:') === 0 ? t('envNote') : '';
+    hint.textContent = t('keySaved', SETTINGS.key_hint || '', envNote);
+  } else {
+    hint.textContent = t('keyMissing');
+  }
+  const result = $('testResult');
+  result.className = 'test-result';
+  result.textContent = '';
+}
+
+function openSettings(){ fillSettingsForm(); $('modal').hidden = false; }
+function closeSettings(){ $('modal').hidden = true; }
+
+function collectForm(){
+  const body = {
+    enabled: $('fEnabled').checked,
+    base_url: $('fBase').value.trim(),
+    model: $('fModel').value.trim()
+  };
+  const key = $('fKey').value.trim();
+  if (key) body.api_key = key;
+  return body;
+}
+
+async function saveSettings(){
+  const result = $('testResult');
+  result.className = 'test-result';
+  result.textContent = t('saving');
+  try {
+    const res = await fetch('/api/settings', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(collectForm())});
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      result.className = 'test-result err';
+      result.textContent = t('saveFailed', data.error || res.status);
+      return;
+    }
+    SETTINGS = data;
+    updateEnginePill();
+    fillSettingsForm();
+    if (data.enabled && !data.has_key) {
+      result.className = 'test-result err';
+      result.textContent = t('savedNoKey');
+    } else {
+      result.className = 'test-result ok';
+      result.textContent = t('saved');
+    }
+  } catch (err) {
+    result.className = 'test-result err';
+    result.textContent = t('saveFailed', err.message);
+  }
+}
+
+async function testAPI(){
+  const result = $('testResult');
+  result.className = 'test-result';
+  result.textContent = t('testing');
+  try {
+    const res = await fetch('/api/test', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(collectForm())});
+    const data = await res.json();
+    if (data.ok) {
+      result.className = 'test-result ok';
+      result.textContent = t('testOk', data);
+    } else {
+      result.className = 'test-result err';
+      result.textContent = t('testFail', data.error);
+    }
+  } catch (err) {
+    result.className = 'test-result err';
+    result.textContent = t('testFail', err.message);
+  }
+}
+
+$('settingsBtn').onclick = openSettings;
+$('closeModal').onclick = closeSettings;
+$('modalMask').onclick = closeSettings;
+$('saveBtn').onclick = saveSettings;
+$('testBtn').onclick = testAPI;
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSettings(); });
+
+applyStatic();
+welcome();
+bindChips();
+loadSidebar();
+loadSettings();
+const preset = new URLSearchParams(location.search).get('q');
+if (preset) setTimeout(() => send(preset), 250);
+</script>
+</body>
+</html>

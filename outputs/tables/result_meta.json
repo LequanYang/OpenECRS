@@ -1,0 +1,11 @@
+{
+  "schema_version": "evidence-run-v1",
+  "mode": "rule",
+  "records": 15525,
+  "review_queue": 0,
+  "elapsed_seconds": 3.136,
+  "model_base": null,
+  "adapter": null,
+  "calibrated": false,
+  "annotation_required": true
+}

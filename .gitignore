@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Local artefacts
+outputs/agent_ui/settings.json
+outputs/agent_ui/pdf/
+*.log
+
+# OS
+.DS_Store

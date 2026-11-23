@@ -1,0 +1,1580 @@
+{
+ "meta": {
+  "title": "AI 应用场景机会雷达",
+  "agent": "OpenECRS",
+  "generated_at": "2026-11-23T04:11:13+00:00",
+  "records_raw": 52007,
+  "records_clean": 45306,
+  "units": 19621,
+  "demand_units": 15525,
+  "supply_units": 4096,
+  "high_conf_samples": 2848,
+  "evidence_records": 15525,
+  "evidence_opportunities": 162,
+  "evidence_mode": "rule",
+  "quality_state": "needs_annotation",
+  "gold_records": 0,
+  "calibration": "pending",
+  "source_hhi": 0.3767,
+  "span_evidence_rate": 0.3242,
+  "top_scenario": "安全合规与隐私",
+  "top_score": 62.4087,
+  "weights": {
+   "demand": 0.45,
+   "gap": 0.25,
+   "feasibility": 0.18,
+   "value": 0.12
+  },
+  "data_cutoff": "2026-11-20"
+ },
+ "scenarios": [
+  {
+   "name": "安全合规与隐私",
+   "name_en": "Security, Compliance & Privacy",
+   "rank": 1,
+   "n_docs": 293,
+   "share": 0.0238,
+   "demand": 0.6549,
+   "gap": 1.0,
+   "feasibility": 0.3686,
+   "value": 0.1086,
+   "opportunity": 62.4087,
+   "supply_maturity": 0.273,
+   "mean_eng": 0.5232,
+   "need_rate": 0.9711,
+   "wtp_rate": 0.1429,
+   "value_rate": 0.3363,
+   "urgency_rate": 0.0488,
+   "growth_slope": 0.00436,
+   "source_entropy": 0.4714,
+   "answer_rate": 0.3333,
+   "repo_n": 2,
+   "repo_stars_sum": 102936,
+   "paper_n": 100,
+   "show_n": 70,
+   "product_n": 0,
+   "barrier": 0.7,
+   "route": "联合研发/跟踪技术",
+   "route_en": "Joint R&D / track the tech",
+   "top_sources": "HackerNews:248; GitHub:33; StackOverflow:12",
+   "opportunity_records": 4,
+   "evidence": [
+    {
+     "rid": "hn_story_49674396",
+     "title": "How SaaS startup guys get first 100 customers first, make fkn $500k ARR fast?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=49674396",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "I can't even get 5 customers; damn it, I do s / How SaaS startup guys get first 100 customers",
+     "snippet": "How SaaS startup guys get first 100 customers first, make fkn $500k ARR fast? I am running a small AI company that has been building an offline security audit app, simply a fine-tu"
+    },
+    {
+     "rid": "hn_comment_50339789",
+     "title": "Ask HN: Who wants to be hired? (November 2026)",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50339789",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "Looking for security engineering or AI security r / les at companies putting agents in production.",
+     "snippet": "Ask HN: Who wants to be hired? (November 2026) Inline Proxy is my open source MCP security gateway: it enforces allow/block/redact/approve policy on every agent tool call and block"
+    },
+    {
+     "rid": "hn_comment_48461307",
+     "title": "AI is slowing down",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=48461307",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "ks, what makes you think Anthropic can't do the same thing and offer it as one / The real challenge IMO is whether enterprise will want to run the models on-site f",
+     "snippet": "AI is slowing down If using a larger model to plan a chain of thought task for a smaller model works, what makes you think Anthropic can't do the same thing and offer it as one of "
+    },
+    {
+     "rid": "so_78521178",
+     "title": "Issues with LLM Retrieving Passwords from Provided Passages",
+     "source": "StackOverflow",
+     "channel": "question",
+     "year": 2024,
+     "url": "https://stackoverflow.com/questions/78521178/issues-with-llm-retrieving-passwords-from-provided-passages",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "h the message: \"I apologize, but I cannot assist you in finding personal inform / information about an individual or organization without their explicit consent.",
+     "snippet": "Issues with LLM Retrieving Passwords from Provided Passages Instead, it responds with the message: \"I apologize, but I cannot assist you in finding personal information about an in"
+    },
+    {
+     "rid": "hn_comment_50336965",
+     "title": "Brazilian Court Sanctions Lawyers for Prompt Injection in Court Filing",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50336965",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "it doesn't even make mistakes, it can't be swayed with linguistic games, and / nan",
+     "snippet": "Brazilian Court Sanctions Lawyers for Prompt Injection in Court Filing Unlike ChatGPT, it doesn't even make mistakes, it can't be swayed with linguistic games, and has a superhuman"
+    },
+    {
+     "rid": "hn_comment_48999378",
+     "title": "OpenAI and Hugging Face address security incident during model evaluation",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=48999378",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "during model evaluation The models cannot have true intelligence for as long as / nan",
+     "snippet": "OpenAI and Hugging Face address security incident during model evaluation OpenAI and Hugging Face address security incident during model evaluation The models cannot have true inte"
+    }
+   ]
+  },
+  {
+   "name": "多智能体与任务编排",
+   "name_en": "Multi-agent & Task Orchestration",
+   "rank": 2,
+   "n_docs": 593,
+   "share": 0.0407,
+   "demand": 0.8355,
+   "gap": 0.2701,
+   "feasibility": 0.5623,
+   "value": 0.2823,
+   "opportunity": 57.8582,
+   "supply_maturity": 0.7219,
+   "mean_eng": 0.5169,
+   "need_rate": 0.5728,
+   "wtp_rate": 0.2795,
+   "value_rate": 0.4304,
+   "urgency_rate": 0.0622,
+   "growth_slope": 0.00572,
+   "source_entropy": 0.9233,
+   "answer_rate": 0.1758,
+   "repo_n": 62,
+   "repo_stars_sum": 866945,
+   "paper_n": 494,
+   "show_n": 555,
+   "product_n": 0,
+   "barrier": 0.5,
+   "route": "红海差异化",
+   "route_en": "Red-ocean differentiation",
+   "top_sources": "HackerNews:264; GitHub:238; StackOverflow:91",
+   "opportunity_records": 8,
+   "evidence": [
+    {
+     "rid": "hn_story_44042311",
+     "title": "If an AI agent can't figure out how your API works, neither can your users",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://stytch.com/blog/if-an-ai-agent-cant-figure-out-how-your-api-works-neither-can-your-users/",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "If an AI agent can't figure out how your API works, neithe / w your API works, neither can your users",
+     "snippet": "If an AI agent can't figure out how your API works, neither can your users If an AI agent can't figure out how your API works, neither can your users If an AI agent can't figure ou"
+    },
+    {
+     "rid": "hn_story_46740645",
+     "title": "Ask HN: How are you enforcing permissions for AI agent tool calls in production?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=46740645",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "r enforcement point that the agent cannot bypass? / issions for AI agent tool calls in production?",
+     "snippet": "Ask HN: How are you enforcing permissions for AI agent tool calls in production? Most of the safety patterns I hear are prompt rules + basic validation + “human-in-the-loop for ris"
+    },
+    {
+     "rid": "hn_comment_50377715",
+     "title": "Ask HN: What's your current AI agentic setup?",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50377715",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "agentic setup? With Anthropic, you cannot access their inference servers withou / rs without going through one their client software or paying the API pricing.",
+     "snippet": "Ask HN: What's your current AI agentic setup? With Anthropic, you cannot access their inference servers without going through one their client software or paying the API pricing."
+    },
+    {
+     "rid": "hn_comment_46809844",
+     "title": "Show HN: Native-devtools-MCP – MCP server for native desktop app interaction",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=46809844",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "und agent integration Feedback I’m looking for: - Practical use cases where this cha / changed your automation or testing workflow - Ideas to make MCP server integratio",
+     "snippet": "Show HN: Native-devtools-MCP – MCP server for native desktop app interaction - Better documentation and tooling around agent integration Feedback I’m looking for: - Practical use c"
+    },
+    {
+     "rid": "hn_story_48896651",
+     "title": "AI agents write Ruby but can't navigate it: a 5-model, 13-codebase benchmark",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2026,
+     "url": "https://github.com/luuuc/sense/blob/main/bench/verticals/ruby-rails/report-for-humans.md",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "AI agents write Ruby but can't navigate it: a 5-model, 13-codebase b / nan",
+     "snippet": "AI agents write Ruby but can't navigate it: a 5-model, 13-codebase benchmark AI agents write Ruby but can't navigate it: a 5-model, 13-codebase benchmark AI agents write Ruby but c"
+    },
+    {
+     "rid": "hn_story_45215150",
+     "title": "Ask HN: Is the market for AI Agent automations that big?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=45215150",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "ngs using AI, which probably don't need AI in the first place and could just / nan",
+     "snippet": "Ask HN: Is the market for AI Agent automations that big? I've seen hundreds of companies raise millions of dollar for automating things using AI, which probably don't need AI in th"
+    }
+   ]
+  },
+  {
+   "name": "知识管理与文档问答",
+   "name_en": "Knowledge Management & Document QA",
+   "rank": 3,
+   "n_docs": 631,
+   "share": 0.0434,
+   "demand": 0.7765,
+   "gap": 0.411,
+   "feasibility": 0.6083,
+   "value": 0.0932,
+   "opportunity": 57.2843,
+   "supply_maturity": 0.6111,
+   "mean_eng": 0.5229,
+   "need_rate": 0.2607,
+   "wtp_rate": 0.1715,
+   "value_rate": 0.2537,
+   "urgency_rate": 0.0406,
+   "growth_slope": 0.00642,
+   "source_entropy": 0.8417,
+   "answer_rate": 0.2484,
+   "repo_n": 24,
+   "repo_stars_sum": 435102,
+   "paper_n": 556,
+   "show_n": 215,
+   "product_n": 0,
+   "barrier": 0.35,
+   "route": "红海差异化",
+   "route_en": "Red-ocean differentiation",
+   "top_sources": "StackOverflow:322; GitHub:253; HackerNews:56",
+   "opportunity_records": 5,
+   "evidence": [
+    {
+     "rid": "hn_story_42299349",
+     "title": "I looked at 1000s of RAG queries to figure out the problem with semantic search",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2024,
+     "url": "https://news.ycombinator.com/item?id=42299349",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "h starts to break down and provide missing or hallucinated results. / thousands of datapoints of actual user queries to clearly classify and deter",
+     "snippet": "I looked at 1000s of RAG queries to figure out the problem with semantic search I looked into thousands of datapoints of actual user queries to clearly classify and determine exact"
+    },
+    {
+     "rid": "hn_story_49059969",
+     "title": "Ask HN: Should I Combine Global Knowledge, Internet Search, and User RAG",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=49059969",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "cause fine-tuning seems expensive, time-consuming, and I have no experience with it yet / al Knowledge, Internet Search, and User RAG",
+     "snippet": "Ask HN: Should I Combine Global Knowledge, Internet Search, and User RAG How would you design this architecture if you wanted: Accurate answers from domain knowledge User-private d"
+    },
+    {
+     "rid": "hn_comment_50456793",
+     "title": "Faster Retrieval for Better, More Efficient RAG",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50456793",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "things, but for production RAG it cannot search with meaning, different langua / test tool for many things, but for production RAG it cannot search with meaning, di",
+     "snippet": "Faster Retrieval for Better, More Efficient RAG Grep is the fastest tool for many things, but for production RAG it cannot search with meaning, different languages or typos like hy"
+    },
+    {
+     "rid": "so_78912309",
+     "title": "AWS Bedrock RAG - Unable to sync data source in a knowledge base",
+     "source": "StackOverflow",
+     "channel": "question",
+     "year": 2024,
+     "url": "https://stackoverflow.com/questions/78912309/aws-bedrock-rag-unable-to-sync-data-source-in-a-knowledge-base",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "I have doubts that the LLM can't get use of that as I only k / a question: I want to use my app's customer database knowledge to help the FM exp",
+     "snippet": "AWS Bedrock RAG - Unable to sync data source in a knowledge base When I try to sync the sources, I get no feedback; the sync status does not change and there is no popup for an err"
+    },
+    {
+     "rid": "gh_6484773977",
+     "title": "Write-like-Gavin v2: fine-tune on the style corpus (RAG stays the fallback)",
+     "source": "GitHub",
+     "channel": "issue",
+     "year": 2026,
+     "url": "https://github.com/gwkline/homelab/issues/479",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "grounds a rewrite in exemplars but cannot reproduce a voice reliably at length / nan",
+     "snippet": "Write-like-Gavin v2: fine-tune on the style corpus (RAG stays the fallback) Write-like-Gavin v2: fine-tune on the style corpus (RAG stays the fallback) Problem RAG grounds a rewrit"
+    },
+    {
+     "rid": "gh_6484013386",
+     "title": "Sub-issue 5.5: Connect Clinical RAG knowledge base into dynamic dialogue flow",
+     "source": "GitHub",
+     "channel": "issue",
+     "year": 2026,
+     "url": "https://github.com/fridayslifes/Aicare/issues/30",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "flection on medication changes (\"I cannot advise on changing your dose...\"). / nan",
+     "snippet": "Sub-issue 5.5: Connect Clinical RAG knowledge base into dynamic dialogue flow - [ ] System prompt strictly enforces deflection on medication changes (\"I cannot advise on changing y"
+    }
+   ]
+  },
+  {
+   "name": "编程与代码智能",
+   "name_en": "Coding & Code Intelligence",
+   "rank": 4,
+   "n_docs": 467,
+   "share": 0.0363,
+   "demand": 0.7641,
+   "gap": 0.4113,
+   "feasibility": 0.6099,
+   "value": 0.0465,
+   "opportunity": 56.2003,
+   "supply_maturity": 0.5986,
+   "mean_eng": 0.5274,
+   "need_rate": 0.6398,
+   "wtp_rate": 0.1209,
+   "value_rate": 0.2536,
+   "urgency_rate": 0.0498,
+   "growth_slope": 0.00591,
+   "source_entropy": 0.682,
+   "answer_rate": 0.2162,
+   "repo_n": 25,
+   "repo_stars_sum": 713935,
+   "paper_n": 352,
+   "show_n": 286,
+   "product_n": 0,
+   "barrier": 0.3,
+   "route": "红海差异化",
+   "route_en": "Red-ocean differentiation",
+   "top_sources": "HackerNews:340; GitHub:90; StackOverflow:37",
+   "opportunity_records": 6,
+   "evidence": [
+    {
+     "rid": "hn_comment_50002546",
+     "title": "Show HN: Pacer – will your AI coding subscription last until the reset?",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50002546",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "cription last until the reset? you can't get GH Copilot usage via API per user / t get GH Copilot usage via API per user for organizations without admin/billi",
+     "snippet": "Show HN: Pacer – will your AI coding subscription last until the reset? you can't get GH Copilot usage via API per user for organizations without admin/billing manager permissions."
+    },
+    {
+     "rid": "hn_comment_48414455",
+     "title": "Ask HN: What is your (AI) dev tech stack / workflow?",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=48414455",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "tests, review/refactor everything manually, and then deploy. / What is your (AI) dev tech stack / workflow?",
+     "snippet": "Ask HN: What is your (AI) dev tech stack / workflow? VS Code + Claude Code (or Gemini CLI) + GitHub + Docker + FastAPI/Python, using an AI-assisted workflow where I plan features, "
+    },
+    {
+     "rid": "hn_comment_47931269",
+     "title": "Vibe coding will break your company",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=47931269",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "our company Note: legacy platforms can't really benefit from this because you / Vibe coding will break your company",
+     "snippet": "Vibe coding will break your company Note: legacy platforms can't really benefit from this because you probably need to rewrite your product from scratch to fit any sort of cutting-"
+    },
+    {
+     "rid": "hn_comment_46858658",
+     "title": "Claude Code is suddenly everywhere inside Microsoft",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=46858658",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "rywhere inside Microsoft Workflow: Manual logic construction, syntax memorizati / ddenly everywhere inside Microsoft Workflow: Manual logic construction, syntax me",
+     "snippet": "Claude Code is suddenly everywhere inside Microsoft Workflow: Manual logic construction, syntax memorization, and human-led debugging using tools like VS Code or JetBrains IDEs."
+    },
+    {
+     "rid": "hn_story_43494427",
+     "title": "Launch HN: Continue (YC S23) – Create custom AI code assistants",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://hub.continue.dev/explore/assistants",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "They manually maintained separate configuration fil / nan",
+     "snippet": "Launch HN: Continue (YC S23) – Create custom AI code assistants Continue does not constrain their creativity like the vertically integrated, proprietary black box AI code assistant"
+    },
+    {
+     "rid": "hn_story_43986580",
+     "title": "My 600 Hours with AI Coding Assistants: A Practical Comparison",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=43986580",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "t for: Mid-size projects where you need moderate autonomy Cursor - Popular bu / nan",
+     "snippet": "My 600 Hours with AI Coding Assistants: A Practical Comparison Best for: Mid-size projects where you need moderate autonomy Cursor - Popular but underwhelming for true agentic work"
+    }
+   ]
+  },
+  {
+   "name": "办公协作与会议效率",
+   "name_en": "Office Collaboration & Meeting Efficiency",
+   "rank": 5,
+   "n_docs": 46,
+   "share": 0.0034,
+   "demand": 0.4604,
+   "gap": 0.683,
+   "feasibility": 0.4216,
+   "value": 0.2994,
+   "opportunity": 48.9755,
+   "supply_maturity": 0.195,
+   "mean_eng": 0.5295,
+   "need_rate": 0.557,
+   "wtp_rate": 0.2911,
+   "value_rate": 0.443,
+   "urgency_rate": 0.0633,
+   "growth_slope": 0.00065,
+   "source_entropy": 0.9425,
+   "answer_rate": 0.2,
+   "repo_n": 3,
+   "repo_stars_sum": 26202,
+   "paper_n": 48,
+   "show_n": 39,
+   "product_n": 0,
+   "barrier": 0.35,
+   "route": "观察验证",
+   "route_en": "Watch & validate",
+   "top_sources": "HackerNews:23; GitHub:13; StackOverflow:10",
+   "opportunity_records": 0,
+   "evidence": [
+    {
+     "rid": "hn_story_33662020",
+     "title": "Ask HN: What would a truly useful AI personal assistant look like to you?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2022,
+     "url": "https://news.ycombinator.com/item?id=33662020",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "What would be able to do that you can't ask alexa or siri? An integration wit / nan",
+     "snippet": "Ask HN: What would a truly useful AI personal assistant look like to you? What would be able to do that you can't ask alexa or siri? An integration with every significant email box"
+    },
+    {
+     "rid": "hn_story_43972660",
+     "title": "FlyLoop – AI Agent for Scheduling Meetings and Managing Your Calendar",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=43972660",
+     "confidence": 0.6365,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "etings has always been tedious and time-consuming. / AI agent that integrates with your team's messaging and calendar tools.",
+     "snippet": "FlyLoop – AI Agent for Scheduling Meetings and Managing Your Calendar Demo video: I built FlyLoop because scheduling meetings has always been tedious and time-consuming. FlyLoop is"
+    },
+    {
+     "rid": "hn_story_35612156",
+     "title": "Ask HN: What are opensource AI/LLM avaliable for generation of TODO from text.",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2023,
+     "url": "https://news.ycombinator.com/item?id=35612156",
+     "confidence": 0.6365,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "Need to complete within 3 days for [Pokeli / I am developing a todo system for team which can understand text like this.",
+     "snippet": "Ask HN: What are opensource AI/LLM avaliable for generation of TODO from text. I am developing a todo system for team which can understand text like this. - @john Generate a list o"
+    },
+    {
+     "rid": "gh_6492830102",
+     "title": "Feature: review conflicting AI vs Home Assistant timezones before calendar approval",
+     "source": "GitHub",
+     "channel": "issue",
+     "year": 2026,
+     "url": "https://github.com/superdingo101/daylight-calendar-import/issues/279",
+     "confidence": 0.6365,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "timezones before calendar approval Manual pasted source (year 2027 is intention / Users must also be able to manually edit da",
+     "snippet": "Feature: review conflicting AI vs Home Assistant timezones before calendar approval Manual pasted source (year 2027 is intentional , and the input included it): On 2026-11-19 at 06"
+    },
+    {
+     "rid": "hn_comment_47551088",
+     "title": "An early-adopter used my software to build for their client",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=47551088",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / sed my software to build for their client",
+     "snippet": "An early-adopter used my software to build for their client Struere is an AI Agent platform with a database and an automation system like zappier, plus integrations with calendar, "
+    },
+    {
+     "rid": "so_77191837",
+     "title": "How to add API key into gmail",
+     "source": "StackOverflow",
+     "channel": "question",
+     "year": 2023,
+     "url": "https://stackoverflow.com/questions/77191837/how-to-add-api-key-into-gmail",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / PI key into gmail I have created a workflow so i can have chatgpt answer my custo",
+     "snippet": "How to add API key into gmail How to add API key into gmail I have created a workflow so i can have chatgpt answer my customer service email but im not sure on how i can integrate "
+    }
+   ]
+  },
+  {
+   "name": "垂直行业应用",
+   "name_en": "Vertical Industry Applications",
+   "rank": 6,
+   "n_docs": 57,
+   "share": 0.0045,
+   "demand": 0.4387,
+   "gap": 0.51,
+   "feasibility": 0.3088,
+   "value": 0.5112,
+   "opportunity": 44.1849,
+   "supply_maturity": 0.2369,
+   "mean_eng": 0.4978,
+   "need_rate": 0.7333,
+   "wtp_rate": 0.2857,
+   "value_rate": 0.4762,
+   "urgency_rate": 0.0571,
+   "growth_slope": 0.00124,
+   "source_entropy": 0.8096,
+   "answer_rate": 0.2727,
+   "repo_n": 3,
+   "repo_stars_sum": 1622,
+   "paper_n": 198,
+   "show_n": 23,
+   "product_n": 1,
+   "barrier": 0.75,
+   "route": "垂直细分验证",
+   "route_en": "Vertical niche validation",
+   "top_sources": "HackerNews:37; StackOverflow:11; GitHub:9",
+   "opportunity_records": 0,
+   "evidence": [
+    {
+     "rid": "hn_comment_48034971",
+     "title": "Ask HN: Who wants to be hired? (May 2026)",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=48034971",
+     "confidence": 0.6365,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "e for organizations where the data can't leave the building; healthcare, legal / e hired? (May 2026) Current focus: on-prem AI inference for organizations where",
+     "snippet": "Ask HN: Who wants to be hired? (May 2026) Current focus: on-prem AI inference for organizations where the data can't leave the building; healthcare, legal, finance, government. I d"
+    },
+    {
+     "rid": "hn_story_47335852",
+     "title": "Tell HN: AI coding is not for the impatient",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=47335852",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / e models are slow, but because the workflow itself is iterative.",
+     "snippet": "Tell HN: AI coding is not for the impatient Not because the models are slow, but because the workflow itself is iterative."
+    },
+    {
+     "rid": "hn_story_45114189",
+     "title": "AI Orchestration Market Witnesses Surge in Use Across Healthcare and BFSI",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=45114189",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / rapidly becoming a cornerstone of enterprise digital transformation, enabling the",
+     "snippet": "AI Orchestration Market Witnesses Surge in Use Across Healthcare and BFSI The global AI orchestration market is rapidly becoming a cornerstone of enterprise digital transformation,"
+    },
+    {
+     "rid": "gh_6484861833",
+     "title": "AI diagnosis and repair: failed run 44481770421",
+     "source": "GitHub",
+     "channel": "issue",
+     "year": 2026,
+     "url": "https://github.com/Smile8171/facebook-ai-page-scheduler/issues/67",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / Check the workflow run and confirm the COPILOT GITHUB TO",
+     "snippet": "AI diagnosis and repair: failed run 44481770421 AI diagnosis and repair: failed run 44481770421 Automated failure diagnosis (unverified) Copilot inference was unavailable. Check th"
+    },
+    {
+     "rid": "so_75714108",
+     "title": "Uncaught (in promise) SyntaxError: Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON and internal server 500",
+     "source": "StackOverflow",
+     "channel": "question",
+     "year": 2023,
+     "url": "https://stackoverflow.com/questions/75714108/uncaught-in-promise-syntaxerror-unexpected-token-doctype-is-not",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / is not valid JSON and internal server 500",
+     "snippet": "Uncaught (in promise) SyntaxError: Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON and internal server 500 Uncaught (in promise) SyntaxError: Unexpected token ' { setApiOut"
+    },
+    {
+     "rid": "hn_comment_48003228",
+     "title": "OpenAI’s o1 correctly diagnosed 67% of ER patients vs. 50-55% by triage doctors",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=48003228",
+     "confidence": 0.4765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "extensively for many conditions, I can't be happier. / nan",
+     "snippet": "OpenAI’s o1 correctly diagnosed 67% of ER patients vs. 50-55% by triage doctors As a 60yo I developed my own AI medical assistant [1] and I've used it extensively for many conditio"
+    }
+   ]
+  },
+  {
+   "name": "客户服务与智能客服",
+   "name_en": "Customer Service & AI Support",
+   "rank": 7,
+   "n_docs": 23,
+   "share": 0.0016,
+   "demand": 0.2653,
+   "gap": 0.4869,
+   "feasibility": 0.2488,
+   "value": 0.8,
+   "opportunity": 38.1947,
+   "supply_maturity": 0.072,
+   "mean_eng": 0.4314,
+   "need_rate": 0.4737,
+   "wtp_rate": 0.6579,
+   "value_rate": 0.7632,
+   "urgency_rate": 0.0,
+   "growth_slope": 0.00064,
+   "source_entropy": 0.8852,
+   "answer_rate": 0.0,
+   "repo_n": 2,
+   "repo_stars_sum": 5504,
+   "paper_n": 25,
+   "show_n": 11,
+   "product_n": 0,
+   "barrier": 0.45,
+   "route": "观察验证",
+   "route_en": "Watch & validate",
+   "top_sources": "HackerNews:12; GitHub:8; StackOverflow:3",
+   "opportunity_records": 1,
+   "evidence": [
+    {
+     "rid": "hn_story_42590047",
+     "title": "Reimagining CRMs with AI: A Bootstrapped SaaS Founder's Journey",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=42590047",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "er's Journey For 90% of agents who struggle it’s a 'systems' problem, not just a / ining CRMs with AI: A Bootstrapped SaaS Founder's Journey",
+     "snippet": "Reimagining CRMs with AI: A Bootstrapped SaaS Founder's Journey For 90% of agents who struggle it’s a 'systems' problem, not just a CRM problem: Legacy CRMs store data without help"
+    },
+    {
+     "rid": "hn_story_42755923",
+     "title": "Ask HN: Which AI CRM for B2B Startup?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=42755923",
+     "confidence": 0.6365,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "HN: Which AI CRM for B2B Startup? Looking for a feature-packed, user-friendly, AI-e / tup? Looking for a feature-packed, user-friendly, AI-enabled CRM for a B2B Sa",
+     "snippet": "Ask HN: Which AI CRM for B2B Startup? Looking for a feature-packed, user-friendly, AI-enabled CRM for a B2B Saas company. What do you recommend? I'm sick of paying a premium for Hu"
+    },
+    {
+     "rid": "hn_story_39533743",
+     "title": "Ask HN: What would you like in a workflow builder inside a CRM?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2024,
+     "url": "https://news.ycombinator.com/item?id=39533743",
+     "confidence": 0.624,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "ne unified system, eliminating the need of dozens / Ask HN: What would you like in a workflow builder inside a CRM?",
+     "snippet": "Ask HN: What would you like in a workflow builder inside a CRM? We are building a CRM software which converges a lot of tools. Think of your customer support, engineering, sales wo"
+    },
+    {
+     "rid": "hn_story_43876900",
+     "title": "AI in Customer Service: Frustration with Glitchy Automation and Data Capture",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://www.moneylife.in/article/ai-in-customer-service-frustration-with-glitchy-automation-and-data-capture/77026.html",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / AI in Customer Service: Frustration with Glitchy Aut",
+     "snippet": "AI in Customer Service: Frustration with Glitchy Automation and Data Capture AI in Customer Service: Frustration with Glitchy Automation and Data Capture AI in Customer Service: Fr"
+    },
+    {
+     "rid": "hn_comment_49631450",
+     "title": "I haven't lost a customer service fight in seven months",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=49631450",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / I haven't lost a customer service fight in seven months",
+     "snippet": "I haven't lost a customer service fight in seven months Mostly this leaves me concerned about an escalating war between companies intentionally introducing friction into their cust"
+    },
+    {
+     "rid": "hn_comment_42600507",
+     "title": "Ask HN: Who wants to be hired? (January 2025)",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=42600507",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / amless CRM integration, as well as customer support AI systems that reduce human",
+     "snippet": "Ask HN: Who wants to be hired? (January 2025) My projects include AI-driven conversational chatbots for lead capture with seamless CRM integration, as well as customer support AI s"
+    }
+   ]
+  },
+  {
+   "name": "浏览器与工作流自动化",
+   "name_en": "Browser & Workflow Automation",
+   "rank": 8,
+   "n_docs": 142,
+   "share": 0.0112,
+   "demand": 0.4322,
+   "gap": 0.2888,
+   "feasibility": 0.3943,
+   "value": 0.1692,
+   "opportunity": 35.7933,
+   "supply_maturity": 0.3117,
+   "mean_eng": 0.4715,
+   "need_rate": 0.59,
+   "wtp_rate": 0.1954,
+   "value_rate": 0.3602,
+   "urgency_rate": 0.069,
+   "growth_slope": 0.00126,
+   "source_entropy": 0.8194,
+   "answer_rate": 0.2143,
+   "repo_n": 17,
+   "repo_stars_sum": 206211,
+   "paper_n": 14,
+   "show_n": 114,
+   "product_n": 0,
+   "barrier": 0.55,
+   "route": "观察验证",
+   "route_en": "Watch & validate",
+   "top_sources": "HackerNews:91; StackOverflow:28; GitHub:23",
+   "opportunity_records": 3,
+   "evidence": [
+    {
+     "rid": "hn_story_44780519",
+     "title": "Ask HN: Can no-code AI workflow tools replace runbooks?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=44780519",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "ise, etc.), are we moving past the need for the classic runbook automation to / Ask HN: Can no-code AI workflow tools replace runbooks?",
+     "snippet": "Ask HN: Can no-code AI workflow tools replace runbooks? With all these no-code/AI-powered automation platforms popping up (n8n, Zapier, Make, Flowise, etc.), are we moving past the"
+    },
+    {
+     "rid": "hn_story_48017838",
+     "title": "I'm looking for an AI Automation Engineer role or gig",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=48017838",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "I'm looking for an AI Automation Engineer role or gig / outreach, and turn workflows into revenue.",
+     "snippet": "I'm looking for an AI Automation Engineer role or gig Hi all, I'm an AI automation engineer who builds systems that replace manual work, scale outreach, and turn workflows into rev"
+    },
+    {
+     "rid": "hn_comment_45066201",
+     "title": "Ask HN: Should we stop worrying that AI will replace developer jobs?",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=45066201",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "ges used, so the set of work that \"cannot be done by AI\" will also be minimized / stop worrying that AI will replace developer jobs?",
+     "snippet": "Ask HN: Should we stop worrying that AI will replace developer jobs? And bear in mind that every aspect of every software process will be optimized as much as possible for AI autom"
+    },
+    {
+     "rid": "hn_story_44397833",
+     "title": "Ask HN: What's the Best AI Browser Automation Solution?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=44397833",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "I Browser Automation Solution? I'm looking for a browser automation solution that is / nan",
+     "snippet": "Ask HN: What's the Best AI Browser Automation Solution? I'm looking for a browser automation solution that is: - driven by natural language - uses best models (ideally Claude 4 or "
+    },
+    {
+     "rid": "hn_story_41447976",
+     "title": "Ask HN: Why agency recruiters don't opt for AI based automation tools?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2024,
+     "url": "https://news.ycombinator.com/item?id=41447976",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "e, Different agency recruiters use manual systems when it comes to administrati / nan",
+     "snippet": "Ask HN: Why agency recruiters don't opt for AI based automation tools? In my experience, Different agency recruiters use manual systems when it comes to administrative work."
+    },
+    {
+     "rid": "hn_story_46444061",
+     "title": "AI Automation",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=46444061",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "Validation is everything when you can't afford to fail 3. / nan",
+     "snippet": "AI Automation Validation is everything when you can't afford to fail 3."
+    }
+   ]
+  },
+  {
+   "name": "语音与实时交互",
+   "name_en": "Voice & Real-time Interaction",
+   "rank": 9,
+   "n_docs": 229,
+   "share": 0.0185,
+   "demand": 0.4751,
+   "gap": 0.1209,
+   "feasibility": 0.4079,
+   "value": 0.3324,
+   "opportunity": 35.7325,
+   "supply_maturity": 0.4163,
+   "mean_eng": 0.486,
+   "need_rate": 0.4791,
+   "wtp_rate": 0.214,
+   "value_rate": 0.2535,
+   "urgency_rate": 0.0326,
+   "growth_slope": -0.00444,
+   "source_entropy": 0.8918,
+   "answer_rate": 0.2424,
+   "repo_n": 6,
+   "repo_stars_sum": 128551,
+   "paper_n": 103,
+   "show_n": 244,
+   "product_n": 1,
+   "barrier": 0.65,
+   "route": "观察验证",
+   "route_en": "Watch & validate",
+   "top_sources": "HackerNews:102; StackOverflow:99; GitHub:28",
+   "opportunity_records": 2,
+   "evidence": [
+    {
+     "rid": "hn_story_29774378",
+     "title": "Ask HN: What is the best existing chatbot-as-service and the tech behind it?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2022,
+     "url": "https://news.ycombinator.com/item?id=29774378",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "the tech behind it? Hey HN gang - Looking for the best AI chatbot (API) which can h / Think: user speech-to-text (voice recognition), A",
+     "snippet": "Ask HN: What is the best existing chatbot-as-service and the tech behind it? Hey HN gang - Looking for the best AI chatbot (API) which can handle general conversation, to use as ba"
+    },
+    {
+     "rid": "gh_6230014131",
+     "title": "Spec: Tala v1, a Taglish voice agent for Kidlat Fiber",
+     "source": "GitHub",
+     "channel": "issue",
+     "year": 2026,
+     "url": "https://github.com/DonSuavvy/tala-voice-agent/issues/1",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "ch a human when I ask or when Tala can't help, so that I feel heard. / lat Fiber What supervisors and the company get: - A live supervisor console show",
+     "snippet": "Spec: Tala v1, a Taglish voice agent for Kidlat Fiber What supervisors and the company get: - A live supervisor console shows the transcript, a span timeline (model calls, tools, g"
+    },
+    {
+     "rid": "hn_story_40716905",
+     "title": "Inspired by My Wife's Unique Interests, I Created a Transcription Platform",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2024,
+     "url": "https://news.ycombinator.com/item?id=40716905",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "commonly used languages—though it struggles with unclear audio, which can lead to / nan",
+     "snippet": "Inspired by My Wife's Unique Interests, I Created a Transcription Platform With the AI boom happening, I came across OpenAI's Whisper automatic speech recognition model and started"
+    },
+    {
+     "rid": "hn_story_45615804",
+     "title": "Monetizing Voice AI",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=45615804",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "instead of wiring things together manually. / nan",
+     "snippet": "Monetizing Voice AI Coldi AI handles most of this for you, offering API and telephony integrations so you can focus on growth instead of wiring things together manually."
+    },
+    {
+     "rid": "hn_comment_50233845",
+     "title": "Dessa: Conversation Model trained only on speech",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50233845",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "ion Model trained only on speech I can't even imagine what things like RAG, sy / nan",
+     "snippet": "Dessa: Conversation Model trained only on speech I can't even imagine what things like RAG, system prompts and other context setups would look like with this."
+    },
+    {
+     "rid": "hn_comment_50298847",
+     "title": "LLM Voice",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50298847",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "at they haven't suggests that they cannot, despite all the claimed advances in / nan",
+     "snippet": "LLM Voice The fact that they haven't suggests that they cannot, despite all the claimed advances in model analysis and \"explainability.\""
+    }
+   ]
+  },
+  {
+   "name": "内容创作与营销",
+   "name_en": "Content Creation & Marketing",
+   "rank": 10,
+   "n_docs": 85,
+   "share": 0.0061,
+   "demand": 0.3536,
+   "gap": 0.0556,
+   "feasibility": 0.6267,
+   "value": 0.4071,
+   "opportunity": 33.4648,
+   "supply_maturity": 0.3188,
+   "mean_eng": 0.4553,
+   "need_rate": 0.4196,
+   "wtp_rate": 0.2308,
+   "value_rate": 0.3706,
+   "urgency_rate": 0.049,
+   "growth_slope": 0.0007,
+   "source_entropy": 0.9755,
+   "answer_rate": 0.4762,
+   "repo_n": 2,
+   "repo_stars_sum": 61458,
+   "paper_n": 111,
+   "show_n": 95,
+   "product_n": 1,
+   "barrier": 0.25,
+   "route": "观察验证",
+   "route_en": "Watch & validate",
+   "top_sources": "HackerNews:37; GitHub:27; StackOverflow:21",
+   "opportunity_records": 1,
+   "evidence": [
+    {
+     "rid": "gh_6495599328",
+     "title": "Google AI Overviews and AI Mode revenue tracking (blog post)",
+     "source": "GitHub",
+     "channel": "issue",
+     "year": 2026,
+     "url": "https://github.com/virling/virling/issues/1066",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "s Organic search) and what can and cannot be separated. / Google AI Overviews and AI Mode revenue tracking (blog post)",
+     "snippet": "Google AI Overviews and AI Mode revenue tracking (blog post) - Title and H1 lead with \"Google AI Overviews revenue tracking\"; the first 100 words answer how AI Overview and AI Mode"
+    },
+    {
+     "rid": "hn_story_37545403",
+     "title": "Ask HN: Can I use SEO with online/AI tools instead of WordPress plugins?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2023,
+     "url": "https://news.ycombinator.com/item?id=37545403",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "to my previous post [1], if I may need to create some SEO optimized texts fo / nan",
+     "snippet": "Ask HN: Can I use SEO with online/AI tools instead of WordPress plugins? In the follow-up to my previous post [1], if I may need to create some SEO optimized texts for a website of"
+    },
+    {
+     "rid": "so_76533691",
+     "title": "Backend in node.js used for OpenAI image generation giving error code of 400",
+     "source": "StackOverflow",
+     "channel": "question",
+     "year": 2023,
+     "url": "https://stackoverflow.com/questions/76533691/backend-in-node-js-used-for-openai-image-generation-giving-error-code-of-400",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "This is what I need: Generate im / nan",
+     "snippet": "Backend in node.js used for OpenAI image generation giving error code of 400 Backend in node.js used for OpenAI image generation giving error code of 400 I am building a backend us"
+    },
+    {
+     "rid": "gh_6499347039",
+     "title": "BCT SEO/GEO: Week 0 baseline + keyword strategy (drafting & 3D land modeling) per seo-client-program",
+     "source": "GitHub",
+     "channel": "issue",
+     "year": 2026,
+     "url": "https://github.com/ccastle13/bct2-website/issues/7",
+     "confidence": 0.6365,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "per seo-client-program There is no need to open other repositories; the Summi / afting & 3D land modeling) per seo-client-program",
+     "snippet": "BCT SEO/GEO: Week 0 baseline + keyword strategy (drafting & 3D land modeling) per seo-client-program There is no need to open other repositories; the Summit approach is summarized "
+    },
+    {
+     "rid": "hn_story_38239465",
+     "title": "Ask HN: Hey Podcasters, do you use AI to optimize your workflow?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2023,
+     "url": "https://news.ycombinator.com/item?id=38239465",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / rs, do you use AI to optimize your workflow?",
+     "snippet": "Ask HN: Hey Podcasters, do you use AI to optimize your workflow? I am the host of a German-speaking software engineering podcast ( This is a side project, and publishing one episod"
+    },
+    {
+     "rid": "hn_story_40359277",
+     "title": "Can AI and ChatGPT Replace Copywriters and SEO Specialists?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2024,
+     "url": "https://news.ycombinator.com/item?id=40359277",
+     "confidence": 0.5725,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "nan / l has significantly streamlined my workflow and saved a lot of time.",
+     "snippet": "Can AI and ChatGPT Replace Copywriters and SEO Specialists? This tool has significantly streamlined my workflow and saved a lot of time."
+    }
+   ]
+  },
+  {
+   "name": "教育学习与知识辅导",
+   "name_en": "Education & Learning Tutoring",
+   "rank": 11,
+   "n_docs": 90,
+   "share": 0.0063,
+   "demand": 0.4387,
+   "gap": 0.0502,
+   "feasibility": 0.6424,
+   "value": 0.0006,
+   "opportunity": 32.5655,
+   "supply_maturity": 0.4059,
+   "mean_eng": 0.4938,
+   "need_rate": 0.5548,
+   "wtp_rate": 0.1164,
+   "value_rate": 0.1712,
+   "urgency_rate": 0.1096,
+   "growth_slope": -0.00062,
+   "source_entropy": 0.987,
+   "answer_rate": 0.4783,
+   "repo_n": 6,
+   "repo_stars_sum": 162703,
+   "paper_n": 310,
+   "show_n": 28,
+   "product_n": 0,
+   "barrier": 0.3,
+   "route": "观察验证",
+   "route_en": "Watch & validate",
+   "top_sources": "GitHub:34; HackerNews:33; StackOverflow:23",
+   "opportunity_records": 2,
+   "evidence": [
+    {
+     "rid": "hn_comment_44778628",
+     "title": "We Paid Users $300K to Upload Their Camera Rolls, Homework, and Dashcam Footage",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=44778628",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "scale photo databases, you simply cannot scale up your simple user's rights wi / We Paid Users $300K to Upload Their Camera Rolls, H",
+     "snippet": "We Paid Users $300K to Upload Their Camera Rolls, Homework, and Dashcam Footage In the modern times of big tech, automation, AI, and large scale photo databases, you simply cannot "
+    },
+    {
+     "rid": "gh_6499117211",
+     "title": "[team:paper-exams] Work out what OCR and Gemini cost per exam, and whether we need a cap",
+     "source": "GitHub",
+     "channel": "issue",
+     "year": 2026,
+     "url": "https://github.com/pawtograder/platform/issues/1338",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "mini cost per exam, and whether we need a cap / [team:paper-exams] Work out what OCR and Ge",
+     "snippet": "[team:paper-exams] Work out what OCR and Gemini cost per exam, and whether we need a cap [team:paper-exams] Work out what OCR and Gemini cost per exam, and whether we need a cap No"
+    },
+    {
+     "rid": "hn_comment_50333949",
+     "title": "Asking my AI teacher how to spell seventeen",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50333949",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "dom AI (not even sure which model) can't spell seventeen. / nan",
+     "snippet": "Asking my AI teacher how to spell seventeen new bubble pops theory found - random AI (not even sure which model) can't spell seventeen."
+    },
+    {
+     "rid": "gh_6477704807",
+     "title": "feat(story): stories show the course's own figures and lesson illustrations, resolved once without LLM; existing stories re-bound (phase 1)",
+     "source": "GitHub",
+     "channel": "issue",
+     "year": 2026,
+     "url": "https://github.com/Benidrissa/etutor-digital-ph/issues/2709",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "-bound (phase 1) - The plan prompt cannot name a figure. / nan",
+     "snippet": "feat(story): stories show the course's own figures and lesson illustrations, resolved once without LLM; existing stories re-bound (phase 1) - The plan prompt cannot name a figure. "
+    },
+    {
+     "rid": "hn_comment_50478666",
+     "title": "Socratic Tutor",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50478666",
+     "confidence": 0.6365,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "input that stops the internal LLM cannot be some output of an external one. / f course, the input that stops the internal LLM cannot be some output of an exter",
+     "snippet": "Socratic Tutor And, of course, the input that stops the internal LLM cannot be some output of an external one. The teacher cannot give canned prompts; he must observe the pupil in "
+    },
+    {
+     "rid": "hn_comment_50532668",
+     "title": "S. Korea to send nationwide emergency alerts over college entrance exam cheating",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50532668",
+     "confidence": 0.4765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "entrance exam cheating We do still need to press for critical thinking skills / nan",
+     "snippet": "S. Korea to send nationwide emergency alerts over college entrance exam cheating We do still need to press for critical thinking skills but we need to properly teach what AI can an"
+    }
+   ]
+  },
+  {
+   "name": "数据分析与商业洞察",
+   "name_en": "Data Analysis & Business Insights",
+   "rank": 12,
+   "n_docs": 192,
+   "share": 0.0159,
+   "demand": 0.2149,
+   "gap": 0.0,
+   "feasibility": 0.4513,
+   "value": 0.0,
+   "opportunity": 17.791,
+   "supply_maturity": 0.2005,
+   "mean_eng": 0.4846,
+   "need_rate": 0.2027,
+   "wtp_rate": 0.1162,
+   "value_rate": 0.1703,
+   "urgency_rate": 0.0595,
+   "growth_slope": -0.01014,
+   "source_entropy": 0.4066,
+   "answer_rate": 0.3136,
+   "repo_n": 3,
+   "repo_stars_sum": 21025,
+   "paper_n": 58,
+   "show_n": 43,
+   "product_n": 0,
+   "barrier": 0.4,
+   "route": "观察验证",
+   "route_en": "Watch & validate",
+   "top_sources": "StackOverflow:169; GitHub:14; HackerNews:9",
+   "opportunity_records": 1,
+   "evidence": [
+    {
+     "rid": "so_79899201",
+     "title": "Chatbot that converts questions to SQL queries",
+     "source": "StackOverflow",
+     "channel": "question",
+     "year": 2026,
+     "url": "https://stackoverflow.com/questions/79899201/chatbot-that-converts-questions-to-sql-queries",
+     "confidence": 0.8365,
+     "is_opportunity": 1,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "queries I have a usecase where we need to perform complex calculations (aggr / from multiple tables) on the given customer knowledge base, so I can't use simple",
+     "snippet": "Chatbot that converts questions to SQL queries Chatbot that converts questions to SQL queries I have a usecase where we need to perform complex calculations (aggregate function fro"
+    },
+    {
+     "rid": "hn_story_38844077",
+     "title": "Ask HN: Do you need intelligent AI functions in SQL?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2024,
+     "url": "https://news.ycombinator.com/item?id=38844077",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "Ask HN: Do you need intelligent AI functions in SQL? / nan",
+     "snippet": "Ask HN: Do you need intelligent AI functions in SQL? Hey, I am wondering if it would be helpful to have some AI functions in SQL. Basically, imagine if you could use AI to process "
+    },
+    {
+     "rid": "hn_story_43538506",
+     "title": "Ask HN: How do you make GPT generate SQL across multiple tables?",
+     "source": "HackerNews",
+     "channel": "story",
+     "year": 2025,
+     "url": "https://news.ycombinator.com/item?id=43538506",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "ineering for GPT-3.5, and found it struggles a lot when generating SQL over multi- / nan",
+     "snippet": "Ask HN: How do you make GPT generate SQL across multiple tables? I've been experimenting with prompt engineering for GPT-3.5, and found it struggles a lot when generating SQL over "
+    },
+    {
+     "rid": "hn_comment_50295072",
+     "title": "Edit an SQLite database in your browser",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=50295072",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "atabase in your browser How anyone cannot produce the same thing by just pointi / nan",
+     "snippet": "Edit an SQLite database in your browser How anyone cannot produce the same thing by just pointing an AI agent to it?"
+    },
+    {
+     "rid": "hn_comment_46615450",
+     "title": "10x PostgreSQL performance boost on AWS RDS via ML-driven tuning",
+     "source": "HackerNews",
+     "channel": "comment",
+     "year": 2026,
+     "url": "https://news.ycombinator.com/item?id=46615450",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "practical AI automation databases need. / nan",
+     "snippet": "10x PostgreSQL performance boost on AWS RDS via ML-driven tuning Impressive case study: zero downtime, workload-aware tuning, and a real 10× latency win on a busy RDS PostgreSQL re"
+    },
+    {
+     "rid": "so_79466204",
+     "title": "Using n8n to query a Microsoft SQL database, what value goes into the \"Query\" parameter to have the AI decide",
+     "source": "StackOverflow",
+     "channel": "question",
+     "year": 2025,
+     "url": "https://stackoverflow.com/questions/79466204/using-n8n-to-query-a-microsoft-sql-database-what-value-goes-into-the-query-pa",
+     "confidence": 0.6765,
+     "is_opportunity": 0,
+     "gates": [
+      "需求",
+      "业务"
+     ],
+     "quote": "ameter to have the AI decide But I cannot find any documentation showing what v / nan",
+     "snippet": "Using n8n to query a Microsoft SQL database, what value goes into the \"Query\" parameter to have the AI decide But I cannot find any documentation showing what value should be put i"
+    }
+   ]
+  }
+ ]
+}
