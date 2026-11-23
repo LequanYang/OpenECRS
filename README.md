@@ -2,10 +2,35 @@
   <img src="code/assets/logo-lockup.png" alt="OpenECRS" width="340">
 </p>
 
-<h1 align="center">OpenECRS</h1>
-
 <p align="center"><b>Open Evidence-Centric Recommendation System</b><br>
 An LLM-required agent that turns public AI-tooling signals into auditable, prioritised product opportunities.</p>
+
+<p align="center">
+  <img alt="tests" src="https://img.shields.io/badge/tests-88%20passing-brightgreen">
+  <img alt="LLM required" src="https://img.shields.io/badge/LLM-required-blue">
+  <img alt="languages" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20JA%20%7C%20ES-orange">
+  <img alt="python" src="https://img.shields.io/badge/python-3.11%2B-3776AB">
+</p>
+
+<details>
+<summary><b>Table of contents</b></summary>
+
+- [What is OpenECRS?](#what-is-openecrs)
+- [Highlights](#highlights)
+- [Screenshots](#screenshots)
+- [What you can do](#what-you-can-do)
+- [Architecture](#architecture)
+- [Quick start](#quick-start)
+- [Languages and roles](#languages-and-roles)
+- [HTTP API](#http-api)
+- [Evidence base and methodology](#evidence-base-and-methodology)
+- [Repository layout](#repository-layout)
+- [Tests](#tests)
+- [Security and privacy](#security-and-privacy)
+- [FAQ](#faq)
+- [License and attribution](#license-and-attribution)
+
+</details>
 
 <p align="center">
   <a href="README.zh-CN.md">中文版</a> ·
@@ -44,6 +69,13 @@ The LLM is **mandatory**. Without a configured model the agent refuses to chat; 
 - **Persistent conversations** — history survives reloads and server restarts; search, rename and delete from the sidebar.
 - **Clean, collapsible UI** — official OpenECRS logo, responsive sidebar, model switcher, settings split into Model and Preferences.
 - **Runs offline by default** — no build step, no CDN, no telemetry; only the configured LLM endpoint receives requests.
+
+### Design principles
+
+- **Grounded by default** — if a number cannot be traced to a tool result, it does not belong in the answer.
+- **LLM for language, code for truth** — the model plans and writes; deterministic code owns scores, rankings and quotes.
+- **Uncertainty is a feature** — every brief states calibration, sample and source-bias limits.
+- **Local-first** — one Python process, no build step, no telemetry, no CDN.
 
 ---
 
@@ -279,6 +311,22 @@ Coverage: grounded tools, planner/responder validation with fake providers (incl
 - Conversation history, saved workspace, generated PDFs and logs stay under `outputs/agent_ui/` and are git-ignored.
 - No telemetry, analytics or CDN requests. The only outbound request is to the LLM endpoint you configure (plus the browser opening external video links when you click them).
 - The UI is served by a local Python HTTP server; do not expose it to untrusted networks without adding authentication.
+
+---
+
+## FAQ
+
+**Do I need an API key?** Yes. OpenECRS is an LLM-required agent; without a model it returns HTTP 428. You can use a hosted OpenAI-compatible endpoint or a local Qwen2.5 + LoRA setup.
+
+**Is the data live?** No. The evidence snapshot is fixed at 2026-11-20; re-running the upstream pipeline is required to refresh it.
+
+**Does the LLM see my API key?** No. The key stays in the local Python process and is sent only to the endpoint you configure.
+
+**Can I use it offline?** The UI and tools run offline; the LLM itself must be reachable (local Ollama/Qwen or a hosted API).
+
+**Why do estimates say “heuristic”?** Effort/cost ranges are planning aids, not measured market data. They are labelled explicitly and should be validated.
+
+**Why are some confidences low?** The evidence review is a rule-based shadow review without human gold labels; low confidence is reported rather than hidden.
 
 ---
 

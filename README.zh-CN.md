@@ -2,10 +2,15 @@
   <img src="code/assets/logo-lockup.png" alt="OpenECRS" width="340">
 </p>
 
-<h1 align="center">OpenECRS</h1>
-
 <p align="center"><b>Open Evidence-Centric Recommendation System · 证据驱动机会推荐智能体</b><br>
 把公开的 AI 工具信号，变成可核查、可排序、可执行的产品机会判断。</p>
+
+<p align="center">
+  <img alt="tests" src="https://img.shields.io/badge/tests-88%20passing-brightgreen">
+  <img alt="LLM required" src="https://img.shields.io/badge/LLM-required-blue">
+  <img alt="languages" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20JA%20%7C%20ES-orange">
+  <img alt="python" src="https://img.shields.io/badge/python-3.11%2B-3776AB">
+</p>
 
 <p align="center">
   <a href="README.md">English</a> ·
@@ -44,6 +49,13 @@
 - **历史对话保留**：刷新页面或重启服务后恢复，支持搜索、重命名、删除。
 - **干净可折叠界面**：官方 Logo、响应式侧边栏、模型切换、设置分为「模型 / 偏好设置」。
 - **默认完全本地运行**：无需构建、无 CDN、无遥测；只有你配置的 LLM 端点会收到请求。
+
+### 设计原则
+
+- **默认有据可查**：无法回溯到工具结果的数字，不进入回答。
+- **LLM 负责语言，代码负责事实**：模型规划与撰写，评分/排名/原文由确定性代码提供。
+- **不确定性要明说**：每份建议书都写明校准、样本与来源偏差。
+- **本地优先**：单个 Python 进程，无构建、无遥测、无 CDN。
 
 ---
 
@@ -279,6 +291,22 @@ python -m unittest test_agent_tools test_agent_core test_agent_http test_agent_f
 - 历史对话、收藏、PDF 与日志保存在 `outputs/agent_ui/` 下，并已被 gitignore。
 - 无遥测、无分析、无 CDN；唯一外部请求是发往你配置的 LLM 端点（以及点击视频链接时浏览器打开外部页面）。
 - 界面由本机 Python HTTP 服务提供；不要在没有鉴权的情况下暴露到不可信网络。
+
+---
+
+## 常见问题
+
+**必须配置 API Key 吗？** 是。OpenECRS 是 LLM 必需的智能体，未配置模型时接口返回 HTTP 428；可用 OpenAI 兼容 API，或本地 Qwen2.5 + LoRA。
+
+**数据是实时的吗？** 不是。证据快照固定为 2026-11-20，需要重跑上游流水线才能刷新。
+
+**模型会拿到我的 Key 吗？** 不会。Key 只保存在本地 Python 进程中，仅发送到你配置的端点。
+
+**能离线使用吗？** 界面与工具可离线；LLM 本身必须可达（本地 Ollama/Qwen 或在线 API）。
+
+**为什么估算都写“heuristic”？** 人力/成本区间是规划辅助，不是实测市场数据，需自行验证。
+
+**为什么有些置信度很低？** 证据审查是规则影子审查、无人工金标；低置信度会如实展示，而不是隐藏。
 
 ---
 
