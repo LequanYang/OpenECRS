@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="code/assets/logo-lockup.png" alt="OpenECRS" width="360">
+</p>
+
 # OpenECRS
 
 **Open Evidence-Centric Recommendation System（证据驱动机会推荐智能体）** —— 用 LLM 把公开的 AI 工具信号变成可核查、可排序的产品机会。

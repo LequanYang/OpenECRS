@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="code/assets/logo-lockup.png" alt="OpenECRS" width="360">
+</p>
+
 # OpenECRS
 
 **Open Evidence-Centric Recommendation System** — an LLM agent that turns public AI-tooling signals into auditable, prioritised product opportunities.
