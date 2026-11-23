@@ -224,6 +224,8 @@ def chat_completion(config: dict, messages: list[dict], max_tokens: int | None =
             raise LLMError(f"API Key 无效或没有权限（HTTP {exc.code}），请检查 Key 与 Base URL 是否匹配")
         if exc.code == 404:
             raise LLMError("接口路径不存在：Base URL 需要是 OpenAI 兼容地址，通常以 /v1 结尾")
+        if exc.code == 402:
+            raise LLMError("模型账户余额不足（HTTP 402），请先在服务商控制台充值")
         if exc.code == 429:
             raise LLMError("调用频率或额度超限（HTTP 429），请稍后重试")
         raise LLMError(f"模型接口返回 HTTP {exc.code}：{body or exc.reason}")

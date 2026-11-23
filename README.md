@@ -1,50 +1,50 @@
 # OpenECRS
 
-**Open Evidence-Centric Recommendation System** — an evidence-driven agent that turns public AI-tooling signals into auditable, prioritised product opportunities.
+**Open Evidence-Centric Recommendation System** — an LLM agent that turns public AI-tooling signals into auditable, prioritised product opportunities.
 
 English · **[中文版](README.zh-CN.md)**
 
 ![OpenECRS welcome screen](docs/screenshots/welcome-en.png)
 
-OpenECRS reads a pre-built evidence base of 12 AI application scenarios, scores each one on demand, supply gap, feasibility and business value, and answers questions in a clean chat UI. Every answer starts with a **one-sentence recommendation**, followed by **detailed data**, quoted evidence spans, and an action plan — exportable as a **PDF brief** in one click. An OpenAI-compatible LLM API can optionally rewrite the wording; the numbers and evidence always stay offline and auditable.
+OpenECRS is a **complete agent system**: the LLM is mandatory. The model plans every answer, calls deterministic tools over a pre-built evidence base of 12 AI application scenarios, and writes a **one-sentence recommendation + detailed data + evidence quotes + action plan**, exportable as a PDF brief. Numbers and evidence always come from the tools, never from the model — and if no LLM is configured, the agent refuses to chat.
 
-## Features
+## Highlights
 
-- **Bilingual UI** — switch between English and 中文 from the top bar; English is the default.
-- **Evidence, not vibes** — every conclusion carries the quoted span, source, year and confidence, traceable to the original record.
-- **One-sentence advice → detailed data** — ranking, scenario scorecard, comparison table, evidence excerpts and action plan are generated deterministically.
-- **PDF brief export** — an A4 report (`docs/examples/OpenECRS_brief_en.pdf`) with advice, data, evidence, actions and scope/limitations. Rendered locally by Chrome/Edge/Chromium — no network needed.
-- **Optional LLM API** — any OpenAI-compatible endpoint (DeepSeek / OpenAI / Moonshot / DashScope compatible mode / local Ollama). The LLM only rewrites the advice and explanation; if the call fails it falls back to the rule engine automatically.
-- **Programmatic HTTP API** — `/api/chat`, `/api/pdf`, `/api/settings`, `/api/test`, `/api/health`.
-- **Fully offline by default** — no API key, no telemetry, no external CDN; only Python standard library at runtime.
+- **LLM required** — no rule-template answers. API (OpenAI-compatible) or a local fine-tuned Qwen2.5-3B + LoRA adapter.
+- **Real agent loop** — `plan → tools → answer`, two model calls per turn; the UI shows an **Agent trace** (intent, tool calls, model latency).
+- **Grounded tools** — ranking, scenario metrics, comparisons, evidence search; every claim is traceable to a quoted span.
+- **Bilingual** — English default, 中文 toggle; README / answers / PDF all follow the active language.
+- **PDF brief** — one-sentence advice, detailed data, evidence excerpts, action plan, scope & limitations; rendered locally.
+- **Programmatic API** — `/api/chat`, `/api/pdf`, `/api/settings`, `/api/test`, `/api/health`.
+
+## Architecture
+
+```
+planner prompt ──► LLM call #1 ──► strict JSON plan (intent, scenarios, tools)
+                                        │
+                              deterministic tools (catalog/ranking/scenario/compare/evidence/search)
+                                        │
+responder prompt ──► LLM call #2 ──► advice + reply + actions + risks
+                                        │
+                     runtime attaches metrics/ranking/evidence → chat card + PDF
+```
+
+The agent behaviour is defined in **[skills/openecrs_agent.md](skills/openecrs_agent.md)** and rendered into the planner/responder prompts by `code/agent_prompts.py`. The LLM only writes wording; the runtime owns data fidelity.
 
 ## Quick start
 
 ```bash
-# Python 3.11+ (verified on 3.14 / macOS, Linux and Windows should work too)
+# Python 3.11+ (verified on 3.14 / macOS)
 pip install -r requirements.txt        # pandas is only needed to rebuild data.json
 
 python code/agent_app.py --open        # -> http://127.0.0.1:8765
 ```
 
-macOS users can also double-click **`openecrs.command`** to launch and open the browser.
+macOS users can double-click **`openecrs.command`**.
 
-Useful flags:
+On first launch the UI asks for an LLM. Open **Settings** and pick one of:
 
-```bash
-python code/agent_app.py --port 9000 --open   # different port
-python code/agent_app.py --rebuild            # rebuild outputs/agent_ui/data.json from outputs/tables/
-```
-
-## Language switch
-
-- UI: top-right **EN / 中文** toggle. The choice is persisted in `localStorage`; the default is English.
-- Docs: this file is English; the Chinese version is [README.zh-CN.md](README.zh-CN.md).
-- Answers and PDFs are produced in the language of the active UI (`lang=en|zh` on the API).
-
-## Connect an LLM API (optional)
-
-Open the gear icon in the top bar, fill **Base URL / Model / API Key**, click **Test connection**, enable the switch and save. The UI indicates the active engine (`Rule engine` or `LLM · <model>`), and the PDF footer records whether the LLM rewrote the advice.
+### API backend (OpenAI-compatible)
 
 | Provider | Base URL | Model example |
 |---|---|---|
@@ -54,7 +54,22 @@ Open the gear icon in the top bar, fill **Base URL / Model / API Key**, click **
 | DashScope compatible mode | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` |
 | Local Ollama | `http://127.0.0.1:11434/v1` | local model name, any key |
 
-The key is stored locally in `outputs/agent_ui/settings.json` (mode `0600`) and is only sent to the endpoint you configure. `DEEPSEEK_API_KEY` / `OPENAI_API_KEY` / `LLM_API_KEY` (and `LLM_BASE_URL` / `LLM_MODEL`) are also supported. On timeout / invalid key / malformed output the answer falls back to the rule engine and says so.
+Paste the key, click **Test connection**, then **Save**. Keys live in `outputs/agent_ui/settings.json` (0600) and are only sent to the endpoint you configure; `DEEPSEEK_API_KEY` / `OPENAI_API_KEY` / `LLM_API_KEY` and `LLM_BASE_URL` / `LLM_MODEL` are supported too.
+
+### Local fine-tuned backend
+
+```bash
+pip install -r requirements-lora.txt
+# put Qwen2.5-3B-Instruct weights into models/Qwen2.5-3B-Instruct
+# the bundled pilot adapter lives in outputs/lora/adapter_pilot
+```
+
+In Settings → **Local fine-tuned**, set the base model path and adapter path, click Test, save. CPU inference is slow; GPU recommended. The pilot adapter was trained on 160 pseudo-labelled samples / 24 steps and exists to validate the training and inference chain, not to claim accuracy.
+
+## Agent Skill
+
+The full skill (role, data contract, tool definitions, workflow, output rules, guardrails) is published at
+[`skills/openecrs_agent.md`](skills/openecrs_agent.md). It is the same text used by `agent_prompts.py`, so hosted and local models behave consistently.
 
 ## HTTP API
 
@@ -68,49 +83,45 @@ curl -s -X POST http://127.0.0.1:8765/api/pdf -H 'Content-Type: application/json
 
 | Endpoint | Description |
 |---|---|
-| `POST /api/chat` | `{session, message, lang}` → structured answer (advice, reply, metrics, ranking, comparison, evidence, actions, risks, chips, engine) |
-| `POST /api/pdf` | `{session, lang}` → `application/pdf` brief; JSON fallback if no local browser |
-| `GET /api/settings` / `POST /api/settings` | masked LLM settings (key never returned) / save settings |
-| `POST /api/test` | test the configured LLM endpoint |
-| `GET /api/health` | service, data and PDF backend status |
+| `POST /api/chat` | `{session, message, lang}` → agent answer (advice, reply, metrics, ranking, comparison, evidence, actions, risks, engine, trace) |
+| `POST /api/pdf` | `{session, lang}` → `application/pdf` brief |
+| `GET/POST /api/settings` | read (key masked) / save LLM backend settings |
+| `POST /api/test` | test the selected backend |
+| `GET /api/health` | service, LLM readiness, data and PDF backend status |
 | `GET /api/data` | compact dataset used by the UI |
+
+When no LLM is configured, `/api/chat` returns **HTTP 428** with `{"code": "llm_required", "hint": ...}` — the agent never falls back to templates.
 
 ## Evidence base
 
-Snapshot date **2026-11-20**:
+Snapshot **2026-11-20**: 52,007 raw records → 45,306 cleaned records (Hacker News, GitHub, arXiv, Stack Overflow, Product Hunt) → 19,621 demand/supply units → 15,525 demand units → 2,848 high-confidence scenario samples (18.34%). 15,525 evidence reviews, 162 four-gate opportunities, 72 quotes bundled in `outputs/agent_ui/data.json`.
 
-- 52,007 raw records → 45,306 cleaned records from Hacker News, GitHub, arXiv, Stack Overflow and Product Hunt.
-- 19,621 demand/supply units → 15,525 demand units → 2,848 high-confidence scenario samples (18.34%).
-- 12 AI application scenarios scored with AHP weights: demand 45% + supply gap 25% + feasibility 18% + business value 12% (CR = 0.0002).
-- 15,525 record-level evidence reviews; 162 pass the four-gate opportunity check; 72 evidence quotes are bundled in `outputs/agent_ui/data.json`.
+Top five: Security, Compliance & Privacy **62.41**; Multi-agent & Task Orchestration **57.86**; Knowledge Management & Document QA **57.28**; Coding & Code Intelligence **56.20**; Office Collaboration & Meeting Efficiency **48.98**.
 
-Top five by opportunity score: Security, Compliance & Privacy **62.41**; Multi-agent & Task Orchestration **57.86**; Knowledge Management & Document QA **57.28**; Coding & Code Intelligence **56.20**; Office Collaboration & Meeting Efficiency **48.98**.
-
-The evidence base is produced by a separate analysis pipeline (collection, cleaning, weak supervision, scoring, evidence review). This repository ships only the **agent runtime** plus the tables needed to rebuild `data.json`; it does not include the raw crawl or the fine-tuned LoRA adapter.
+The analysis pipeline that produced this evidence base (collection, cleaning, weak supervision, scoring, evidence review) is not part of this repository; only the agent runtime and the tables needed to rebuild `data.json` are included.
 
 ## Repository layout
 
 ```
 OpenECRS/
 ├─ code/
-│  ├─ agent_app.py        # local server: static UI + /api/chat + /api/pdf + settings/test
-│  ├─ agent_engine.py     # deterministic bilingual reasoning (ranking / scenario / compare / evidence / risk / action)
-│  ├─ scenario_names.py   # shared English display names and route names
-│  ├─ agent_llm.py        # optional OpenAI-compatible LLM bridge with automatic fallback
-│  ├─ agent_pdf.py        # A4 brief HTML template + local Chromium PDF rendering
-│  ├─ agent_ui.html       # single-file bilingual chat UI (no build step, no CDN)
-│  ├─ agent_ui_data.py    # rebuild outputs/agent_ui/data.json from outputs/tables/
-│  ├─ test_agent_ui.py    # UI / reasoning / PDF / HTTP tests (incl. English mode)
-│  └─ test_agent_llm.py   # LLM bridge tests against a local mock endpoint
-├─ outputs/
-│  ├─ agent_ui/data.json  # bundled dataset: 12 scenarios + 72 evidence quotes
-│  └─ tables/             # reconciliation tables (scores, supply, evidence reviews, quality card)
-├─ docs/
-│  ├─ screenshots/        # bilingual UI screenshots
-│  └─ examples/           # sample English / Chinese PDF briefs
-├─ openecrs.command       # macOS one-click launcher
-├─ requirements.txt
-├─ requirements-lora.txt  # dependencies for the (not bundled) LoRA fine-tuning pipeline
+│  ├─ agent_app.py        # HTTP server + static UI + API endpoints
+│  ├─ agent_core.py       # agent loop: plan → tools → answer, session memory, trace
+│  ├─ agent_prompts.py    # Agent Skill → planner / responder prompts (bilingual)
+│  ├─ agent_tools.py      # grounded scenario data, ranking, comparison, evidence search
+│  ├─ agent_settings.py   # API / local backend settings, legacy migration, readiness
+│  ├─ agent_providers.py  # provider resolution + connection test
+│  ├─ agent_llm.py        # OpenAI-compatible HTTP client
+│  ├─ agent_local.py      # local Qwen2.5 + LoRA provider (optional)
+│  ├─ agent_pdf.py        # A4 brief template + local Chromium PDF rendering
+│  ├─ agent_ui.html       # single-file bilingual UI (no build step, no CDN)
+│  ├─ agent_ui_data.py    # rebuild outputs/agent_ui/data.json
+│  └─ test_*.py           # tools / core / HTTP tests (18)
+├─ skills/openecrs_agent.md
+├─ outputs/agent_ui/data.json
+├─ outputs/tables/        # reconciliation tables (scores, evidence reviews, quality card)
+├─ docs/screenshots, docs/examples
+├─ openecrs.command, requirements.txt, requirements-lora.txt
 └─ README.md / README.zh-CN.md
 ```
 
@@ -118,19 +129,20 @@ OpenECRS/
 
 ```bash
 cd code
-python -m unittest test_agent_ui test_agent_llm -v   # 31 tests
+python -m unittest test_agent_tools test_agent_core test_agent_http -v   # 18 tests
 ```
 
-Covers both languages, ranking/scenario/compare/follow-up logic, PDF generation (skipped when no local Chromium is available), the HTTP layer and the LLM bridge with a local mock endpoint.
+Covers grounded tools, planner/responder validation with a fake provider, the LLM-required guard, HTTP settings/test/chat endpoints against a mock OpenAI endpoint, and PDF export when a local browser is available.
 
 ## Scope and limitations
 
-- Scenario labels come from weak supervision (dictionary + TF-IDF/Logistic Regression expansion), not full human annotation.
+- Scenario labels come from weak supervision, not full human annotation.
 - Source bias: Hacker News and GitHub dominate; shares are not true market shares.
-- Supply maturity is proxied by repositories, stars, papers and Show HN; willingness-to-pay is a text signal, not actual payment.
-- Rule confidences are **not calibrated** (no human gold labels yet); treat them as leads. The optional LLM only rewrites wording — it never changes numbers, ranking or evidence.
+- Supply maturity is proxied by repos/stars/papers/Show HN; willingness-to-pay is a text signal.
+- Rule confidences are **not calibrated** (no human gold labels); the agent states this in every brief.
+- The LLM may phrase recommendations differently between runs; numbers and evidence are deterministic.
 - Public data remains subject to the terms and copyright of the original platforms and authors.
 
 ## License and attribution
 
-The code in this repository is released for research and evaluation use. Third-party data snippets are quoted for evidence traceability and remain the property of their original authors. See `docs/examples/` for sample briefs.
+Code in this repository is released for research and evaluation use. Quoted third-party data snippets remain the property of their original authors.

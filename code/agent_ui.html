@@ -21,7 +21,7 @@
   .app{display:flex;height:100vh;overflow:hidden}
 
   /* ---------------- sidebar ---------------- */
-  .side{width:272px;flex:0 0 272px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 14px 14px}
+  .side{width:292px;flex:0 0 292px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 14px 14px}
   .brand{display:flex;align-items:center;gap:9px;padding:0 4px 16px}
   .mark{width:26px;height:26px;border-radius:8px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;letter-spacing:.03em}
   .brand-name{font-weight:600;font-size:14px;letter-spacing:.01em}
@@ -185,6 +185,21 @@
   .welcome .g b{font-size:13px;display:block;margin-bottom:7px}
   .welcome .g span{font-size:12px;line-height:1.75;color:var(--muted);text-wrap:pretty}
 
+  .offline-bar{padding:9px 22px;background:#fff8f1;border-bottom:1px solid #f0d9c4;color:#8a4b22;font-size:12px;line-height:1.6}
+  .offline-bar a{color:#8a4b22;text-decoration:underline}
+  .onboard{display:flex;align-items:center;gap:12px;padding:10px 22px;background:#fff8f1;border-bottom:1px solid #f0d9c4;color:#8a4b22;font-size:12.5px;line-height:1.6}
+  .onboard[hidden]{display:none}
+  .onboard #onboardText{flex:1}
+  .onboard .btn{margin-left:auto;flex:0 0 auto}
+  .tabs{display:flex;gap:6px;background:var(--soft);border-radius:10px;padding:4px;margin:0 0 18px}
+  .tabs button{flex:1;padding:8px 10px;border-radius:8px;font-size:12.5px;color:var(--muted)}
+  .tabs button.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .pill.warn{border-color:#f0d9c4;background:#fff8f1;color:#8a4b22}
+  .pill.warn .dot{background:#d9822b}
+  .trace{margin-top:18px;border-top:1px solid var(--line);padding-top:12px;font-size:12px;color:var(--muted)}
+  .trace summary{cursor:pointer;color:#3c4045;font-weight:500}
+  .trace ol{margin:8px 0 0 18px;padding:0;line-height:1.75}
+  .trace code{font-family:var(--mono);font-size:11px;background:var(--soft);padding:1px 4px;border-radius:4px}
   .scrim{display:none}
   @media (max-width:1020px){
     .topbar .sub{display:none}
@@ -248,28 +263,44 @@
       </div>
     </div>
 
+    <div class="offline-bar" id="offlineBar" hidden></div>
+    <div class="onboard" id="onboard" hidden>
+      <span id="onboardText"></span>
+      <button class="btn primary" id="onboardBtn">Configure LLM</button>
+    </div>
+
     <div class="thread" id="thread"><div class="thread-inner" id="threadInner"></div></div>
 
     <div class="modal" id="modal" hidden>
       <div class="modal-mask" id="modalMask"></div>
       <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-head">
-          <div><b id="modalTitle">Connect an LLM API</b><span class="modal-sub" id="modalSub">OpenAI-compatible endpoint</span></div>
+          <div><b id="modalTitle">LLM settings</b><span class="modal-sub" id="modalSub">LLM configuration</span></div>
           <button class="icon-btn ghost" id="closeModal" aria-label="Close settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
         </div>
-        <p class="modal-desc" id="modalDesc">Works with any OpenAI-compatible endpoint (DeepSeek / OpenAI / Moonshot / DashScope compatible mode / local Ollama). When enabled, the model only rewrites the one-sentence advice and explanation; numbers, ranking and evidence still come from the offline engine. Turn it off to stay fully offline.</p>
-        <label class="field"><span>Base URL</span><input id="fBase" type="text" placeholder="https://api.deepseek.com/v1" spellcheck="false"></label>
-        <label class="field"><span id="fModelLabel">Model</span><input id="fModel" type="text" placeholder="deepseek-chat" spellcheck="false"></label>
-        <label class="field"><span>API Key</span><input id="fKey" type="password" placeholder="sk-..." autocomplete="off"><small class="field-hint" id="keyHint"></small></label>
-        <label class="switch-row"><input type="checkbox" id="fEnabled"><span class="switch"></span><span class="switch-label" id="switchLabel">Use the LLM (fully offline when off)</span></label>
+        <p class="modal-desc" id="modalDesc"></p>
+        <div class="tabs" id="backendTabs">
+          <button data-backend="api" class="active" id="tabApi">API</button>
+          <button data-backend="local" id="tabLocal">Local fine-tuned</button>
+        </div>
+        <div id="apiPanel">
+          <label class="field"><span id="fBaseLabel">Base URL</span><input id="fBase" type="text" placeholder="https://api.deepseek.com/v1" spellcheck="false"></label>
+          <label class="field"><span id="fModelLabel">Model</span><input id="fModel" type="text" placeholder="deepseek-chat" spellcheck="false"></label>
+          <label class="field"><span id="fKeyLabel">API Key</span><input id="fKey" type="password" placeholder="sk-..." autocomplete="off"><small class="field-hint" id="keyHint"></small></label>
+        </div>
+        <div id="localPanel" hidden>
+          <label class="field"><span id="fBaseModelLabel">Base model path</span><input id="fBaseModel" type="text" placeholder="models/Qwen2.5-3B-Instruct" spellcheck="false"></label>
+          <label class="field"><span id="fAdapterLabel">LoRA adapter path</span><input id="fAdapter" type="text" placeholder="outputs/lora/adapter_pilot" spellcheck="false"></label>
+          <p class="field-hint" id="localHint"></p>
+        </div>
         <div class="modal-actions">
           <button class="btn" id="testBtn">Test connection</button>
           <button class="btn primary" id="saveBtn">Save</button>
         </div>
         <div class="test-result" id="testResult"></div>
-        <p class="modal-foot" id="modalFoot">The key is stored locally in <code>outputs/agent_ui/settings.json</code> (mode 0600) and is only sent to the endpoint you configure. Environment variables <code>DEEPSEEK_API_KEY</code> / <code>OPENAI_API_KEY</code> / <code>LLM_API_KEY</code> are also supported.</p>
+        <p class="modal-foot" id="modalFoot"></p>
       </div>
     </div>
 
@@ -294,6 +325,7 @@ const thread = $('thread'), inner = $('threadInner');
 let SESSION = (crypto.randomUUID ? crypto.randomUUID() : 's-' + Date.now());
 let LAST_ANSWER = null;
 let SETTINGS = null;
+let CURRENT_BACKEND = 'api';
 let busy = false;
 
 const LANG = (() => {
@@ -307,26 +339,23 @@ const I18N = {
     title: 'OpenECRS · AI Opportunity Radar',
     tagline: 'AI Opportunity Radar', subTitle: '· AI Opportunity Radar',
     newChat: 'New chat', quickLabel: 'Quick questions', scenLabel: 'Scenarios',
-    exportPdf: 'Export PDF', settingsTitle: 'Connect an LLM API',
-    engineRule: 'Rule engine', engineKey: 'API key needed', engineLlm: 'LLM · ',
-    quick: [
-      'Which scenario should we prioritise?',
-      'Compare Security, Compliance & Privacy vs Multi-agent',
-      'Show evidence for Knowledge Management & Document QA',
-      'Give me a 3-month execution plan',
-      'Why does Customer Service have high business value?'
-    ],
-    sideFoot: (meta) => `<b>Rule-based evidence review</b> · ${meta.evidence_records.toLocaleString()} records<br>Data cut-off ${meta.data_cutoff} · reproducible offline<br>${meta.records_clean.toLocaleString()} cleaned records · ${meta.high_conf_samples.toLocaleString()} high-confidence samples`,
-    welcomeHead: '12 AI scenarios, explained with auditable evidence — ready to export as a brief.',
-    welcomeText: 'Built on 45,306 cleaned records, 15,525 demand units and record-level evidence review. Pick a direction and I will give one conclusion, then the detailed data and quoted evidence; every answer can be exported as a PDF brief. You can optionally connect an LLM API (top-right); it is fully offline when disabled.',
-    tile1: 'Four-dimension score', tile1Text: 'Demand, supply gap, feasibility and business value, AHP weights 45/25/18/12.',
-    tile2: 'Auditable evidence', tile2Text: 'Every conclusion carries the quoted span, source, year and confidence, traceable to the original record.',
-    tile3: 'Direct PDF brief', tile3Text: 'One-sentence advice + detailed data + evidence excerpts + action plan, one click.',
-    welcomeChips: ['Which scenario should we prioritise?', 'Compare Security, Compliance & Privacy vs Multi-agent', 'Show evidence for Knowledge Management & Document QA', 'Give me a 2-week PoC plan'],
-    msgRule: 'OpenECRS · rule-based evidence review',
-    typing: 'OpenECRS · retrieving evidence',
+    exportPdf: 'Export PDF', settingsTitle: 'LLM settings',
+    engineApi: 'API · ', engineLocal: 'Local · ', engineRequired: 'LLM required',
+    quick: ['Which scenario should we prioritise?', 'Compare Security, Compliance & Privacy vs Multi-agent',
+            'Show evidence for Knowledge Management & Document QA', 'Give me a 3-month execution plan',
+            'Why does Customer Service have high business value?'],
+    sideFoot: (m) => `<b>Evidence base</b> · ${m.evidence_records.toLocaleString()} reviews<br>Snapshot ${m.data_cutoff} · ${m.records_clean.toLocaleString()} cleaned records<br>${m.high_conf_samples.toLocaleString()} high-confidence samples`,
+    welcomeHead: 'An evidence-driven agent that plans, calls tools and writes the answer with an LLM.',
+    welcomeText: 'OpenECRS requires an LLM: configure an OpenAI-compatible API or a local fine-tuned adapter in Settings (top-right). The model plans the answer and calls deterministic tools over 12 AI scenarios and 72 evidence quotes; numbers and evidence always come from the tools, never from the model.',
+    tile1: 'LLM plans + writes', tile1Text: 'Every answer is planned and written by the LLM; the rule engine no longer answers on its own.',
+    tile2: 'Grounded tools', tile2Text: 'Scenario scores, ranking comparisons and quoted evidence come from offline tools with source, year and confidence.',
+    tile3: 'PDF brief', tile3Text: 'One-sentence advice + detailed data + evidence excerpts + action plan, exported as an A4 PDF.',
+    welcomeChips: ['Which scenario should we prioritise?', 'Compare Security, Compliance & Privacy vs Multi-agent',
+                   'Show evidence for Knowledge Management & Document QA', 'Give me a 2-week PoC plan'],
+    msgHead: 'OpenECRS · LLM agent',
+    typing: 'OpenECRS · planning and retrieving evidence',
     errorHead: 'OpenECRS · something went wrong',
-    errorBody: 'Make sure the local service is running (python code/agent_app.py), then retry.',
+    errorBody: 'Check the LLM settings or the local service, then retry.',
     answer: 'answer',
     kicker: 'One-sentence advice',
     rankingTitle: 'Opportunity score ranking', rankingTop: (n) => `Opportunity ranking (top ${n})`,
@@ -337,51 +366,57 @@ const I18N = {
     mSamples: 'Samples', mDemand: 'Demand signal', mPayment: 'Payment / value', mSource: 'Source mix',
     mSupply: 'Supply proxy', mBarrier: 'Expert barrier', mRoute: 'Recommended route',
     samplesValue: (n, share) => `${n} high-confidence samples (${share} of demand units)`,
-    growthLabel: 'growth', needLabel: 'need_rate', entropyLabel: 'source_entropy',
+    needLabel: 'need_rate', growthLabel: 'growth', entropyLabel: 'source_entropy',
     supplyValue: (m, stars) => `repos ${m.repo_n} / stars ${stars} / papers ${m.paper_n} / Show HN ${m.show_n}`,
     evidenceTitle: 'Evidence excerpts (quoted spans)',
     confidenceLabel: (v) => `confidence ${v}`, fourGates: 'four gates passed',
     moreEvidence: (n) => `Show ${n} more evidence items`,
-    actionsTitle: 'Action plan',
-    riskNote: (text) => `Scope & limits: ${text} (full data notes in the PDF brief)`,
+    actionsTitle: 'Action plan', risksTitle: 'Risks & limitations',
     exportBrief: 'Export PDF brief', copyBtn: 'Copy summary', copied: 'Copied',
     copyFail: 'Copy failed, please select the text manually.',
     pdfGenerating: 'Generating…', pdfFailed: 'PDF export failed: ', fallbackFilename: 'OpenECRS_brief.pdf',
-    llmFallback: (err) => `Fell back to the rule result: ${err}`,
     copyTemplate: (a) => `[One-sentence advice] ${a.advice}\n[Scenarios] ${(a.scenarios || []).join(', ')}\n[Question] ${a.question || ''}`,
     noAnswer: 'Start a conversation before exporting a PDF brief.',
     scenarioAsk: (name) => `Is “${name}” worth building? Give me advice and evidence.`,
-    testOk: (d) => `Connected · ${d.model} · ${d.latency_ms} ms · reply: ${d.reply || 'ok'}`,
-    testFail: (e) => `Connection failed: ${e || 'unknown error'}`,
-    testing: 'Connecting to the model…', saving: 'Saving…',
-    saved: 'Saved. The next answer will use these settings.',
-    savedNoKey: 'Saved, but there is no API key yet: answers will fall back to the rule engine.',
-    saveFailed: (e) => `Save failed: ${e}`,
+    onboardTitle: 'OpenECRS needs an LLM to talk.',
+    onboardBody: (detail) => `Configure an OpenAI-compatible API or a local fine-tuned model to start. ${detail || ''}`,
+    onboardCta: 'Configure LLM',
+    tabApi: 'API', tabLocal: 'Local fine-tuned',
+    settingsDesc: 'Choose how the agent thinks. API: any OpenAI-compatible endpoint. Local: Qwen2.5-3B + LoRA adapter. In both modes the LLM plans and writes, while numbers and evidence come from offline tools.',
+    baseUrl: 'Base URL', modelLabel: 'Model', keyLabel: 'API Key',
+    baseModelLabel: 'Base model path', adapterLabel: 'LoRA adapter path',
+    localHint: 'Requires torch / transformers / peft and the Qwen2.5-3B-Instruct weights; CPU inference is slow.',
+    testBtn: 'Test connection', saveBtn: 'Save', testing: 'Testing…',
+    testOk: (d) => `${d.backend === 'local' ? 'Local model files found' : 'Connected'} · ${d.model} · ${d.latency_ms} ms`,
+    testFail: (e) => `Failed: ${e || 'unknown error'}`,
+    saving: 'Saving…', saved: 'Saved.', saveFailed: (e) => `Save failed: ${e}`,
     keySaved: (hint, env) => `Saved key ${hint}${env}; leave blank to keep it`,
-    keyMissing: 'No key yet; you can also leave it blank and use DEEPSEEK_API_KEY / OPENAI_API_KEY.',
+    keyMissing: 'No key yet; you can also use DEEPSEEK_API_KEY / OPENAI_API_KEY.',
     envNote: ' (from environment)',
-    ruleHint: 'Generated by the offline rule engine · confidences are not calibrated · PDF contains “one-sentence advice + detailed data”',
-    llmHint: 'Numbers and evidence from the offline rule engine · one-sentence advice rewritten by the LLM · confidences are not calibrated'
+    footerHint: 'OpenECRS is an LLM agent · answers are planned and written by the model · numbers and evidence come from offline tools',
+    traceTitle: 'Agent trace', tracePlan: 'Plan', traceTools: 'Tools', traceAnswer: 'Answer',
+    llmRequiredTitle: 'An LLM is required.',
+    llmRequiredBody: 'Open Settings and configure an API key or a local model first.'
   },
   zh: {
     title: 'OpenECRS · AI 应用场景机会雷达',
     tagline: 'AI 应用场景机会雷达', subTitle: '· AI 应用场景机会雷达',
     newChat: '新对话', quickLabel: '快速提问', scenLabel: '场景索引',
-    exportPdf: '导出 PDF', settingsTitle: '接入大模型 API',
-    engineRule: '规则引擎', engineKey: '待配置 Key', engineLlm: '大模型 · ',
+    exportPdf: '导出 PDF', settingsTitle: '大模型设置',
+    engineApi: 'API · ', engineLocal: '本地 · ', engineRequired: '需要配置 LLM',
     quick: ['哪个场景最值得优先做？', '对比 安全合规 和 多智能体', '知识管理与文档问答 的证据',
             '给我一个三个月内的落地建议', '客户服务为什么价值高？'],
-    sideFoot: (meta) => `<b>规则证据审查</b> · ${meta.evidence_records.toLocaleString()} 条<br>数据截至 ${meta.data_cutoff} · 离线可复现<br>${meta.records_clean.toLocaleString()} 条清洗记录 · ${meta.high_conf_samples.toLocaleString()} 条高置信样本`,
-    welcomeHead: '把 12 个 AI 场景的机会讲清楚，并直接给出可导出的建议书。',
-    welcomeText: '基于 45,306 条清洗记录、15,525 条需求单元与逐条证据审查。你可以点选一个方向，我会先给一句结论，再给出详细数据和原文证据，并支持一键导出 PDF；右上角可接入大模型 API，关闭时完全离线。',
-    tile1: '四维评分', tile1Text: '需求、缺口、可行性、价值四维，AHP 加权 45/25/18/12。',
-    tile2: '证据可核查', tile2Text: '每条结论附原文 span、来源、年份与置信度，可回溯到原始记录。',
-    tile3: '直接出 PDF', tile3Text: '一句话建议 + 详细数据 + 证据摘录 + 行动建议，一键下载。',
+    sideFoot: (m) => `<b>证据库</b> · ${m.evidence_records.toLocaleString()} 条审查<br>快照 ${m.data_cutoff} · ${m.records_clean.toLocaleString()} 条清洗记录<br>${m.high_conf_samples.toLocaleString()} 条高置信样本`,
+    welcomeHead: '一个由 LLM 规划、调用工具并撰写答案的证据驱动智能体。',
+    welcomeText: 'OpenECRS 必须使用 LLM：请在右上角设置中配置 OpenAI 兼容 API 或本地微调模型。模型负责规划与撰写，数字与证据由离线工具检索；不会回退到规则模板回答。',
+    tile1: 'LLM 规划与撰写', tile1Text: '每条回答都由模型规划并撰写；规则引擎不再单独作答。',
+    tile2: '工具提供证据', tile2Text: '场景评分、排名对比与原文证据由离线工具给出，附来源、年份与置信度。',
+    tile3: 'PDF 建议书', tile3Text: '一句话建议 + 详细数据 + 证据摘录 + 行动建议，导出 A4 PDF。',
     welcomeChips: ['哪个场景最值得优先做？', '对比 安全合规 和 多智能体', '知识管理与文档问答 的证据', '给我一个 2 周 PoC 方案'],
-    msgRule: 'OpenECRS · 规则证据审查',
-    typing: 'OpenECRS · 检索证据中',
+    msgHead: 'OpenECRS · LLM 智能体',
+    typing: 'OpenECRS · 正在规划并检索证据',
     errorHead: 'OpenECRS · 出错了',
-    errorBody: '请确认本地服务仍在运行（python code/agent_app.py），然后重试。',
+    errorBody: '请检查大模型设置或本地服务，然后重试。',
     answer: '回答',
     kicker: '一句话建议',
     rankingTitle: '12 个场景机会总分排名', rankingTop: (n) => `机会总分排名（前 ${n}）`,
@@ -392,31 +427,37 @@ const I18N = {
     mSamples: '样本量', mDemand: '需求信号', mPayment: '付费/价值信号', mSource: '来源结构',
     mSupply: '供给镜像', mBarrier: '专家壁垒', mRoute: '建议路线',
     samplesValue: (n, share) => `${n} 条高置信样本（占比 ${share}）`,
-    growthLabel: '增长斜率', needLabel: 'need_rate', entropyLabel: 'source_entropy',
+    needLabel: 'need_rate', growthLabel: '增长斜率', entropyLabel: 'source_entropy',
     supplyValue: (m, stars) => `仓库 ${m.repo_n} / Star ${stars} / 论文 ${m.paper_n} / Show HN ${m.show_n}`,
     evidenceTitle: '证据摘录（原文 span）',
     confidenceLabel: (v) => `置信度 ${v}`, fourGates: '四门通过',
     moreEvidence: (n) => `展开其余 ${n} 条证据`,
-    actionsTitle: '行动建议',
-    riskNote: (text) => `口径与局限：${text}（完整免责与数据口径见 PDF 建议书）`,
+    actionsTitle: '行动建议', risksTitle: '风险与局限',
     exportBrief: '导出 PDF 建议书', copyBtn: '复制结论', copied: '已复制',
     copyFail: '复制失败，请手动选择文本',
     pdfGenerating: '正在生成…', pdfFailed: 'PDF 导出失败：', fallbackFilename: 'AI应用场景建议书.pdf',
-    llmFallback: (err) => `已回退规则结果：${err}`,
     copyTemplate: (a) => `【一句话建议】${a.advice}\n【场景】${(a.scenarios || []).join('、')}\n【问题】${a.question || ''}`,
     noAnswer: '先进行一次对话，再导出 PDF 建议书。',
     scenarioAsk: (name) => `「${name}」值不值得做？给我建议和证据。`,
-    testOk: (d) => `连接成功 · ${d.model} · ${d.latency_ms} ms · 回复：${d.reply || 'ok'}`,
-    testFail: (e) => `连接失败：${e || '未知错误'}`,
-    testing: '正在连接模型…', saving: '保存中…',
-    saved: '已保存。下一条回答将使用当前设置。',
-    savedNoKey: '已保存，但还没有 API Key：回答会回退规则结果。',
-    saveFailed: (e) => `保存失败：${e}`,
+    onboardTitle: 'OpenECRS 需要 LLM 才能对话。',
+    onboardBody: (detail) => `请先配置 OpenAI 兼容 API 或本地微调模型。${detail || ''}`,
+    onboardCta: '配置 LLM',
+    tabApi: 'API', tabLocal: '本地微调',
+    settingsDesc: '选择智能体的思考方式。API：任意 OpenAI 兼容接口；本地：Qwen2.5-3B + LoRA 适配器。两种模式下都由 LLM 规划与撰写，数字与证据来自离线工具。',
+    baseUrl: 'Base URL', modelLabel: '模型', keyLabel: 'API Key',
+    baseModelLabel: '基座模型路径', adapterLabel: 'LoRA 适配器路径',
+    localHint: '需要 torch / transformers / peft 以及 Qwen2.5-3B-Instruct 权重；CPU 推理较慢。',
+    testBtn: '测试连接', saveBtn: '保存', testing: '测试中…',
+    testOk: (d) => `${d.backend === 'local' ? '本地模型文件已找到' : '连接成功'} · ${d.model} · ${d.latency_ms} ms`,
+    testFail: (e) => `失败：${e || '未知错误'}`,
+    saving: '保存中…', saved: '已保存。', saveFailed: (e) => `保存失败：${e}`,
     keySaved: (hint, env) => `已保存 Key ${hint}${env}；留空表示不修改`,
-    keyMissing: '还没有 Key；也可以留空并使用环境变量 DEEPSEEK_API_KEY / OPENAI_API_KEY',
+    keyMissing: '还没有 Key；也可以使用环境变量 DEEPSEEK_API_KEY / OPENAI_API_KEY。',
     envNote: '（来自环境变量）',
-    ruleHint: '回答由离线规则证据引擎生成 · 置信度未经人工校准 · 导出 PDF 含「一句话建议 + 详细数据」',
-    llmHint: '数字与证据来自离线规则证据引擎 · 一句话建议由大模型改写 · 置信度未经人工校准'
+    footerHint: 'OpenECRS 是 LLM 智能体 · 回答由模型规划与撰写 · 数字与证据来自离线工具',
+    traceTitle: 'Agent 过程', tracePlan: '规划', traceTools: '工具', traceAnswer: '作答',
+    llmRequiredTitle: '需要配置 LLM。',
+    llmRequiredBody: '请先在设置中配置 API Key 或本地模型。'
   }
 };
 const T = I18N[LANG] || I18N.en;
@@ -431,6 +472,44 @@ function pct(v){const n = Number(v); return Number.isFinite(n) ? (n*100).toFixed
 function now(){const d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');}
 function scrollBottom(smooth=true){thread.scrollTo({top: thread.scrollHeight, behavior: smooth ? 'smooth' : 'auto'});}
 
+async function fetchJSON(url, options, timeoutMs = 150000){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, Object.assign({}, options, {signal: controller.signal}));
+    const data = await res.json();
+    return {res, data};
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function showOffline(message){
+  const bar = $('offlineBar');
+  if (!bar) return;
+  bar.hidden = false;
+  bar.innerHTML = message;
+}
+
+async function checkService(){
+  if (location.protocol === 'file:') {
+    showOffline(LANG === 'zh'
+      ? '当前是直接打开的本地 HTML 文件，无法调用对话接口。请先运行 <code>python code/agent_app.py --open</code>，然后访问 <a href="http://127.0.0.1:8765">http://127.0.0.1:8765</a>。'
+      : 'This page was opened as a local HTML file, so the chat API is unavailable. Start the agent with <code>python code/agent_app.py --open</code> and open <a href="http://127.0.0.1:8765">http://127.0.0.1:8765</a>.');
+    return false;
+  }
+  try {
+    const res = await fetch('/api/health', {cache: 'no-store'});
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return true;
+  } catch (err) {
+    showOffline(LANG === 'zh'
+      ? '连接不到本地智能体服务（' + err.message + '）。请确认 <code>python code/agent_app.py</code> 仍在运行，然后刷新本页。'
+      : 'Cannot reach the local agent service (' + err.message + '). Make sure <code>python code/agent_app.py</code> is still running, then refresh.');
+    return false;
+  }
+}
+
 function applyStatic(){
   document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : 'en';
   document.title = t('title');
@@ -443,22 +522,50 @@ function applyStatic(){
   $('settingsBtn').title = t('settingsTitle');
   $('settingsBtn').setAttribute('aria-label', t('settingsTitle'));
   $('input').placeholder = LANG === 'zh' ? '描述你的问题，或点上面的建议…' : 'Ask a question, or pick a suggestion above…';
-  $('footHint').textContent = t('ruleHint');
+  $('footHint').textContent = t('footerHint');
   $('modalTitle').textContent = t('settingsTitle');
-  $('modalSub').textContent = LANG === 'zh' ? 'OpenAI 兼容接口' : 'OpenAI-compatible endpoint';
-  $('fModelLabel').textContent = LANG === 'zh' ? '模型' : 'Model';
-  $('switchLabel').textContent = LANG === 'zh' ? '启用大模型（关闭时完全离线）' : 'Use the LLM (fully offline when off)';
-  $('testBtn').textContent = LANG === 'zh' ? '测试连接' : 'Test connection';
-  $('saveBtn').textContent = LANG === 'zh' ? '保存' : 'Save';
-  $('modalDesc').textContent = LANG === 'zh'
-    ? '支持 DeepSeek / OpenAI / Moonshot / 通义 DashScope 兼容模式 / 本地 Ollama 等 OpenAI 兼容接口。开启后，模型只负责改写「一句话建议 + 说明」，数字、排名与证据仍来自离线证据引擎；关闭时完全离线。'
-    : 'Works with any OpenAI-compatible endpoint (DeepSeek / OpenAI / Moonshot / DashScope compatible mode / local Ollama). When enabled, the model only rewrites the one-sentence advice and explanation; numbers, ranking and evidence still come from the offline engine. Turn it off to stay fully offline.';
+  $('modalSub').textContent = LANG === 'zh' ? 'LLM 配置' : 'LLM configuration';
+  $('modalDesc').textContent = t('settingsDesc');
+  $('tabApi').textContent = t('tabApi');
+  $('tabLocal').textContent = t('tabLocal');
+  $('fModelLabel').textContent = t('modelLabel');
+  $('fBaseModelLabel').textContent = t('baseModelLabel');
+  $('fAdapterLabel').textContent = t('adapterLabel');
+  $('localHint').textContent = t('localHint');
+  $('testBtn').textContent = t('testBtn');
+  $('saveBtn').textContent = t('saveBtn');
   $('modalFoot').innerHTML = LANG === 'zh'
-    ? 'Key 只保存在本机 <code>outputs/agent_ui/settings.json</code>（0600 权限），除你填写的接口外不会发往任何地方；也支持环境变量 <code>DEEPSEEK_API_KEY</code> / <code>OPENAI_API_KEY</code> / <code>LLM_API_KEY</code>。'
-    : 'The key is stored locally in <code>outputs/agent_ui/settings.json</code> (mode 0600) and is only sent to the endpoint you configure. Environment variables <code>DEEPSEEK_API_KEY</code> / <code>OPENAI_API_KEY</code> / <code>LLM_API_KEY</code> are also supported.';
+    ? 'API Key 只保存在本机 <code>outputs/agent_ui/settings.json</code>（0600）；本地模式需要 <code>requirements-lora.txt</code> 与 Qwen2.5-3B-Instruct 基座。'
+    : 'Keys are stored locally in <code>outputs/agent_ui/settings.json</code> (0600). Local mode needs <code>requirements-lora.txt</code> and the Qwen2.5-3B-Instruct base model.';
   $('menuBtn').setAttribute('aria-label', LANG === 'zh' ? '打开侧边栏' : 'Open sidebar');
   $('send').setAttribute('aria-label', LANG === 'zh' ? '发送' : 'Send');
   document.querySelectorAll('#langSwitch button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  document.querySelectorAll('#backendTabs button').forEach(b => b.classList.toggle('active', b.dataset.backend === CURRENT_BACKEND));
+}
+
+function updateEnginePill(){
+  const pill = $('enginePill');
+  if (!pill) return;
+  if (SETTINGS && SETTINGS.ready) {
+    if (SETTINGS.backend === 'api') {
+      pill.className = 'pill llm';
+      pill.innerHTML = `<span class="dot"></span>${t('engineApi')}${esc(SETTINGS.api.model || '')}`;
+    } else {
+      pill.className = 'pill llm';
+      const name = (SETTINGS.local.adapter || '').split('/').filter(Boolean).pop() || 'local';
+      pill.innerHTML = `<span class="dot"></span>${t('engineLocal')}${esc(name)}`;
+    }
+  } else {
+    pill.className = 'pill warn';
+    pill.innerHTML = `<span class="dot"></span>${t('engineRequired')}`;
+  }
+  const onboard = $('onboard');
+  if (onboard) {
+    onboard.hidden = !!(SETTINGS && SETTINGS.ready);
+    if (SETTINGS && !SETTINGS.ready) {
+      $('onboardText').textContent = t('onboardTitle') + ' ' + t('onboardBody', SETTINGS.ready_detail || '');
+    }
+  }
 }
 
 function welcome(){
@@ -466,7 +573,7 @@ function welcome(){
     <div class="msg assistant">
       <div class="avatar">OE</div>
       <div class="msg-body">
-        <div class="msg-head">${t('msgRule')}</div>
+        <div class="msg-head">${t('msgHead')}</div>
         <div class="card welcome">
           <h3>${t('welcomeHead')}</h3>
           <p>${t('welcomeText')}</p>
@@ -551,7 +658,7 @@ function comparisonTable(rows){
 }
 
 function metricsTable(m){
-  const stars = Number(m.repo_stars_sum).toLocaleString();
+  const stars = Number(m.repo_stars_sum || 0).toLocaleString();
   const rows = [
     [t('mSamples'), t('samplesValue', m.n_docs, pct(m.share))],
     [t('mDemand'), `${t('needLabel')} ${fmt(m.need_rate)} · ${t('growthLabel')} ${Number(m.growth_slope) >= 0 ? '+' : ''}${pct(m.growth_slope)}`],
@@ -581,39 +688,54 @@ function evidenceList(list, limit = 3){
   return html + '</div>';
 }
 
-function actionList(list){
+function actionList(list, title){
   if (!list || !list.length) return '';
-  return `<div class="sec"><div class="sec-title">${t('actionsTitle')}</div><ol class="actions">${list.map(a => `<li>${esc(a)}</li>`).join('')}</ol></div>`;
+  return `<div class="sec"><div class="sec-title">${title}</div><ol class="actions">${list.map(a => `<li>${esc(a)}</li>`).join('')}</ol></div>`;
+}
+
+function traceBlock(a){
+  const trace = a.trace || [];
+  if (!trace.length) return '';
+  const steps = trace.map(step => {
+    if (step.step === 'plan') {
+      return `<li><b>${t('tracePlan')}</b> · intent <code>${esc(step.intent)}</code> · scenarios ${esc((step.scenarios || []).join(', ') || '—')} · model <code>${esc(step.model || '')}</code> · ${step.latency_ms || 0} ms</li>`;
+    }
+    if (step.step === 'tools') {
+      const calls = (step.calls || []).map(c => `<code>${esc(c.name)}(${esc(JSON.stringify(c.args || {}))})</code>`).join(' ');
+      return `<li><b>${t('traceTools')}</b> ${calls || '—'}</li>`;
+    }
+    return `<li><b>${t('traceAnswer')}</b> · model <code>${esc(step.model || '')}</code> · ${step.latency_ms || 0} ms</li>`;
+  }).join('');
+  return `<details class="trace"><summary>${t('traceTitle')} · ${esc((a.engine || {}).label || '')}</summary><ol>${steps}</ol></details>`;
 }
 
 function renderAnswer(a){
   const names = a.scenarios || [];
   const single = names.length === 1 ? (a.metrics || {})[names[0]] : null;
-  const eng = a.engine || {kind: 'rule'};
-  const engTag = eng.kind === 'llm'
-    ? `<span class="eng-tag">${t('engineLlm')}${esc(eng.model || '')}</span>`
-    : `<span class="eng-tag rule">${t('engineRule')}</span>`;
+  const eng = a.engine || {};
+  const label = eng.label || (eng.backend === 'local' ? t('engineLocal') + (eng.model || '') : t('engineApi') + (eng.model || ''));
+  const engTag = `<span class="eng-tag">${esc(label)}</span>`;
   let html = `<div class="msg assistant"><div class="avatar">OE</div><div class="msg-body">
     <div class="msg-head">OpenECRS · ${esc(a.heading || t('answer'))} · ${now()} ${engTag}</div>
     <div class="card">
       <div class="kicker">${t('kicker')}</div>
       <div class="advice">${esc(a.advice)}</div>`;
-  if (a.reply) html += `<p class="reply">${a.reply}</p>`;
-  if (a.llm_error) html += `<div class="llm-warn">${t('llmFallback', esc(a.llm_error))}</div>`;
+  if (a.reply) html += `<p class="reply">${esc(a.reply)}</p>`;
   if (single) html += statsTiles(single);
   if (names.length === 2 && a.metrics) {
     html += `<div class="stats">${names.map(n => {
       const m = a.metrics[n] || {};
-      const label = LANG === 'zh' ? `${esc(n)} · 机会分` : `${esc(n)} · opportunity`;
-      return `<div class="stat"><div class="lb">${label}</div><div class="vl">${fmt(m.opportunity,1)}</div></div>`;
+      const lbl = LANG === 'zh' ? `${esc(n)} · 机会分` : `${esc(n)} · opportunity`;
+      return `<div class="stat"><div class="lb">${lbl}</div><div class="vl">${fmt(m.opportunity,1)}</div></div>`;
     }).join('')}</div>`;
   }
   if (a.ranking && a.ranking.length) html += rankingTable(a.ranking);
   if (a.comparison && a.comparison.length) html += comparisonTable(a.comparison);
   if (single) html += metricsTable(single);
   if (a.evidence && a.evidence.length) html += evidenceList(a.evidence);
-  if (a.actions && a.actions.length) html += actionList(a.actions);
-  if (a.risks && a.risks.length) html += `<div class="risk">${t('riskNote', esc(a.risks[0]))}</div>`;
+  if (a.actions && a.actions.length) html += actionList(a.actions, t('actionsTitle'));
+  if (a.risks && a.risks.length) html += actionList(a.risks, t('risksTitle'));
+  html += traceBlock(a);
   html += `<div class="msg-actions">
       <button class="btn primary" data-pdf>${t('exportBrief')}</button>
       <button class="btn" data-copy>${t('copyBtn')}</button>
@@ -630,12 +752,12 @@ function renderAnswer(a){
   scrollBottom();
 }
 
-function renderError(message){
+function renderError(message, hint){
   const el = document.createElement('div');
   el.className = 'msg assistant';
   el.innerHTML = `<div class="avatar">OE</div><div class="msg-body"><div class="msg-head">${t('errorHead')}</div>
     <div class="card error"><div class="advice">${esc(message)}</div>
-    <p class="reply">${t('errorBody')}</p></div></div>`;
+    <p class="reply">${esc(hint || t('errorBody'))}</p></div></div>`;
   inner.classList.remove('empty');
   inner.appendChild(el);
   scrollBottom();
@@ -643,6 +765,11 @@ function renderError(message){
 
 async function send(text){
   if (busy) return;
+  if (!SETTINGS || !SETTINGS.ready) {
+    openSettings();
+    updateEnginePill();
+    return;
+  }
   const message = (text || $('input').value || '').trim();
   if (!message) return;
   busy = true;
@@ -652,17 +779,28 @@ async function send(text){
   addUser(message);
   addTyping();
   try {
-    const res = await fetch('/api/chat', {
+    const {res, data} = await fetchJSON('/api/chat', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({session: SESSION, message, lang: LANG})
     });
-    const data = await res.json();
     removeTyping();
-    if (!res.ok || data.error) { renderError(data.error || ('HTTP ' + res.status)); return; }
+    if (!res.ok || data.error) {
+      if (data.code === 'llm_required') {
+        openSettings();
+        updateEnginePill();
+        renderError(LANG === 'zh' ? t('llmRequiredTitle') : t('llmRequiredTitle'), data.hint || t('llmRequiredBody'));
+        return;
+      }
+      renderError(data.error || ('HTTP ' + res.status), data.hint);
+      return;
+    }
     renderAnswer(data);
   } catch (err) {
     removeTyping();
-    renderError((LANG === 'zh' ? '连不上本地智能体服务：' : 'Cannot reach the local agent service: ') + err.message);
+    const msg = err.name === 'AbortError'
+      ? (LANG === 'zh' ? '请求超时（150 秒）。模型或网络较慢，请重试或检查设置。' : 'Request timed out after 150s. The model or network is slow; retry or check settings.')
+      : (LANG === 'zh' ? '连不上本地智能体服务：' : 'Cannot reach the local agent service: ') + err.message;
+    renderError(msg);
   } finally {
     busy = false;
     $('send').disabled = false;
@@ -709,9 +847,8 @@ async function loadSidebar(){
   try {
     const res = await fetch('/api/data');
     const data = await res.json();
-    const meta = Object.assign({
-      evidence_records: 15525, data_cutoff: '2026-11-20', records_clean: 45306, high_conf_samples: 2848
-    }, data.meta || {});
+    const meta = Object.assign({evidence_records: 15525, data_cutoff: '2026-11-20',
+                                records_clean: 45306, high_conf_samples: 2848}, data.meta || {});
     $('sideFoot').innerHTML = t('sideFoot', meta);
     const scen = $('scen');
     scen.innerHTML = '';
@@ -747,85 +884,44 @@ function switchLang(lang){
   location.replace(url.toString());
 }
 
-$('menuBtn').onclick = openNav;
-$('scrim').onclick = closeNav;
-$('newchat').onclick = () => {
-  SESSION = (crypto.randomUUID ? crypto.randomUUID() : 's-' + Date.now());
-  inner.innerHTML = '';
-  welcome();
-  closeNav();
-  setChips(t('welcomeChips'));
-  $('input').focus();
-};
-$('send').onclick = () => send();
-$('pdfTop').onclick = () => {
-  if (!LAST_ANSWER) { alert(t('noAnswer')); return; }
-  exportPDF(null);
-};
-$('input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
-});
-$('input').addEventListener('input', (e) => {
-  e.target.style.height = 'auto';
-  e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
-});
-document.querySelectorAll('#langSwitch button').forEach(b => {
-  b.addEventListener('click', () => switchLang(b.dataset.lang));
-});
-
-function updateEnginePill(){
-  const pill = $('enginePill');
-  if (!pill) return;
-  if (SETTINGS && SETTINGS.ready) {
-    pill.className = 'pill llm';
-    pill.innerHTML = `<span class="dot"></span>${t('engineLlm')}${esc(SETTINGS.model || '')}`;
-  } else if (SETTINGS && SETTINGS.enabled) {
-    pill.className = 'pill';
-    pill.innerHTML = `<span class="dot"></span>${t('engineKey')}`;
-  } else {
-    pill.className = 'pill rule';
-    pill.innerHTML = `<span class="dot"></span>${t('engineRule')}`;
-  }
-  const hint = $('footHint');
-  if (hint) hint.textContent = (SETTINGS && SETTINGS.ready) ? t('llmHint') : t('ruleHint');
-}
-
-async function loadSettings(){
-  try {
-    const res = await fetch('/api/settings');
-    SETTINGS = await res.json();
-    updateEnginePill();
-  } catch (err) { /* keep default rule mode */ }
-}
-
-function fillSettingsForm(){
-  $('fBase').value = SETTINGS ? SETTINGS.base_url : '';
-  $('fModel').value = SETTINGS ? SETTINGS.model : '';
-  $('fEnabled').checked = !!(SETTINGS && SETTINGS.enabled);
-  $('fKey').value = '';
-  const hint = $('keyHint');
-  if (SETTINGS && SETTINGS.has_key) {
-    const envNote = SETTINGS.key_source && SETTINGS.key_source.indexOf('env:') === 0 ? t('envNote') : '';
-    hint.textContent = t('keySaved', SETTINGS.key_hint || '', envNote);
-  } else {
-    hint.textContent = t('keyMissing');
-  }
-  const result = $('testResult');
-  result.className = 'test-result';
-  result.textContent = '';
+function setBackend(backend){
+  CURRENT_BACKEND = backend === 'local' ? 'local' : 'api';
+  document.querySelectorAll('#backendTabs button').forEach(b => b.classList.toggle('active', b.dataset.backend === CURRENT_BACKEND));
+  $('apiPanel').hidden = CURRENT_BACKEND !== 'api';
+  $('localPanel').hidden = CURRENT_BACKEND !== 'local';
 }
 
 function openSettings(){ fillSettingsForm(); $('modal').hidden = false; }
 function closeSettings(){ $('modal').hidden = true; }
 
+function fillSettingsForm(){
+  if (SETTINGS) {
+    CURRENT_BACKEND = SETTINGS.backend || 'api';
+    $('fBase').value = SETTINGS.api.base_url || '';
+    $('fModel').value = SETTINGS.api.model || '';
+    $('fBaseModel').value = SETTINGS.local.base_model || '';
+    $('fAdapter').value = SETTINGS.local.adapter || '';
+    $('fKey').value = '';
+    const hint = $('keyHint');
+    if (SETTINGS.api.has_key) {
+      const envNote = SETTINGS.api.key_source && SETTINGS.api.key_source.indexOf('env:') === 0 ? t('envNote') : '';
+      hint.textContent = t('keySaved', SETTINGS.api.key_hint || '', envNote);
+    } else {
+      hint.textContent = t('keyMissing');
+    }
+  }
+  setBackend(CURRENT_BACKEND);
+  const result = $('testResult');
+  result.className = 'test-result';
+  result.textContent = '';
+}
+
 function collectForm(){
-  const body = {
-    enabled: $('fEnabled').checked,
-    base_url: $('fBase').value.trim(),
-    model: $('fModel').value.trim()
-  };
+  const body = {backend: CURRENT_BACKEND,
+                api: {base_url: $('fBase').value.trim(), model: $('fModel').value.trim()},
+                local: {base_model: $('fBaseModel').value.trim(), adapter: $('fAdapter').value.trim()}};
   const key = $('fKey').value.trim();
-  if (key) body.api_key = key;
+  if (key) body.api.api_key = key;
   return body;
 }
 
@@ -844,13 +940,8 @@ async function saveSettings(){
     SETTINGS = data;
     updateEnginePill();
     fillSettingsForm();
-    if (data.enabled && !data.has_key) {
-      result.className = 'test-result err';
-      result.textContent = t('savedNoKey');
-    } else {
-      result.className = 'test-result ok';
-      result.textContent = t('saved');
-    }
+    result.className = SETTINGS.ready ? 'test-result ok' : 'test-result err';
+    result.textContent = SETTINGS.ready ? t('saved') : t('saveFailed', SETTINGS.ready_detail || '');
   } catch (err) {
     result.className = 'test-result err';
     result.textContent = t('saveFailed', err.message);
@@ -877,7 +968,40 @@ async function testAPI(){
   }
 }
 
+async function loadSettings(){
+  try {
+    const res = await fetch('/api/settings');
+    SETTINGS = await res.json();
+    updateEnginePill();
+  } catch (err) { /* offline banner handles it */ }
+}
+
+$('menuBtn').onclick = openNav;
+$('scrim').onclick = closeNav;
+$('newchat').onclick = () => {
+  SESSION = (crypto.randomUUID ? crypto.randomUUID() : 's-' + Date.now());
+  inner.innerHTML = '';
+  welcome();
+  closeNav();
+  setChips(t('welcomeChips'));
+  $('input').focus();
+};
+$('send').onclick = () => send();
+$('pdfTop').onclick = () => {
+  if (!LAST_ANSWER) { alert(t('noAnswer')); return; }
+  exportPDF(null);
+};
+$('input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
+});
+$('input').addEventListener('input', (e) => {
+  e.target.style.height = 'auto';
+  e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
+});
+document.querySelectorAll('#langSwitch button').forEach(b => b.addEventListener('click', () => switchLang(b.dataset.lang)));
+document.querySelectorAll('#backendTabs button').forEach(b => b.addEventListener('click', () => setBackend(b.dataset.backend)));
 $('settingsBtn').onclick = openSettings;
+$('onboardBtn').onclick = openSettings;
 $('closeModal').onclick = closeSettings;
 $('modalMask').onclick = closeSettings;
 $('saveBtn').onclick = saveSettings;
@@ -889,8 +1013,10 @@ welcome();
 bindChips();
 loadSidebar();
 loadSettings();
+checkService();
 const preset = new URLSearchParams(location.search).get('q');
 if (preset) setTimeout(() => send(preset), 250);
+
 </script>
 </body>
 </html>

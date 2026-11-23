@@ -1,22 +1,35 @@
 # OpenECRS
 
-**Open Evidence-Centric Recommendation System（证据驱动机会推荐智能体）** —— 把公开的 AI 工具信号变成可核查、可排序的产品机会。
+**Open Evidence-Centric Recommendation System（证据驱动机会推荐智能体）** —— 用 LLM 把公开的 AI 工具信号变成可核查、可排序的产品机会。
 
 **[English](README.md)** · 中文版
 
 ![OpenECRS 首屏](docs/screenshots/answer-zh.png)
 
-OpenECRS 读取已经整理好的 12 个 AI 应用场景证据库，从需求、供给缺口、可行性、商业价值四个维度评分，并在一个简洁的对话界面里回答问题。每条回答先给**一句话建议**，再给**详细数据**、原文证据 span 与行动建议，并可一键导出 **PDF 建议书**。可选接入 OpenAI 兼容的大模型 API 来改写措辞；数字、排名与证据始终由离线引擎给出，可核查、可复现。
+OpenECRS 是一个**完整的 Agent 系统**：**必须使用 LLM**。模型负责规划每一次回答，调用离线工具检索证据库，再撰写「一句话建议 + 详细数据 + 原文证据 + 行动建议」，可一键导出 PDF 建议书。数字与证据永远来自工具，而不是模型；如果未配置 LLM，智能体拒绝对话。
 
-## 功能
+## 核心特性
 
-- **中英双语界面**：右上角 EN / 中文 切换，默认英文。
-- **证据可核查**：每条结论附原文 span、来源、年份与置信度，可回溯到原始记录。
-- **一句话建议 → 详细数据**：排名表、场景评分卡、对比表、证据摘录、行动建议都由离线规则引擎确定性生成。
-- **PDF 建议书导出**：A4 报告（示例见 `docs/examples/OpenECRS_brief_zh.pdf`），包含建议、数据、证据、行动建议与口径局限；由本机 Chrome/Edge/Chromium 本地渲染，无需联网。
-- **可选大模型 API**：支持任意 OpenAI 兼容接口（DeepSeek / OpenAI / Moonshot / 通义 DashScope 兼容模式 / 本地 Ollama）。模型只改写「一句话建议 + 说明」；调用失败会自动回退规则结果。
-- **程序化 HTTP API**：`/api/chat`、`/api/pdf`、`/api/settings`、`/api/test`、`/api/health`。
-- **默认完全离线**：无需 API Key、不上传数据、无外部 CDN；运行时只依赖 Python 标准库。
+- **必须有 LLM**：不再使用规则模板作答。支持 OpenAI 兼容 API，或本地 Qwen2.5-3B + LoRA 适配器。
+- **真正的 Agent 循环**：`规划 → 工具 → 作答`，每轮两次模型调用；界面展示 **Agent 过程**（意图、工具调用、模型耗时）。
+- **工具提供证据**：排名、场景指标、对比、证据检索；每条结论都能回溯到原文 span。
+- **中英双语**：默认英文，可切换中文；README、回答、PDF 都跟随当前语言。
+- **PDF 建议书**：一句话建议、详细数据、证据摘录、行动建议、口径局限，本地渲染。
+- **程序化 API**：`/api/chat`、`/api/pdf`、`/api/settings`、`/api/test`、`/api/health`。
+
+## 架构
+
+```
+规划 prompt ──► LLM 第 1 次 ──► 严格 JSON 计划（意图、场景、工具）
+                                     │
+                        离线工具（catalog / ranking / scenario / compare / evidence / search）
+                                     │
+作答 prompt ──► LLM 第 2 次 ──► 一句话建议 + 说明 + 行动 + 风险
+                                     │
+                 运行时附加指标/排名/证据 → 对话卡片 + PDF
+```
+
+Agent 行为定义在 **[skills/openecrs_agent.md](skills/openecrs_agent.md)**，由 `code/agent_prompts.py` 渲染成规划/作答 prompt。模型只负责措辞，数据真实性由运行时保证。
 
 ## 快速开始
 
@@ -27,24 +40,11 @@ pip install -r requirements.txt        # pandas 只在重建 data.json 时需要
 python code/agent_app.py --open        # -> http://127.0.0.1:8765
 ```
 
-macOS 也可以直接双击 **`openecrs.command`** 启动并打开浏览器。
+macOS 也可以直接双击 **`openecrs.command`**。
 
-常用参数：
+首次启动界面会提示需要 LLM。打开 **设置**，二选一：
 
-```bash
-python code/agent_app.py --port 9000 --open   # 换端口
-python code/agent_app.py --rebuild            # 从 outputs/tables/ 强制重建 data.json
-```
-
-## 中英切换
-
-- 界面：右上角 **EN / 中文**，选择会记录在 `localStorage`，默认英文。
-- 文档：英文见 [README.md](README.md)，本文件为中文版。
-- 回答与 PDF 语言跟随当前界面语言（API 参数 `lang=en|zh`）。
-
-## 接入大模型 API（可选）
-
-点右上角齿轮，填写 **Base URL / 模型 / API Key** → 「测试连接」→ 打开开关 → 保存。界面会显示当前引擎（`Rule engine` / `LLM · 模型名`），PDF 页脚也会注明本次是否由大模型改写。
+### API 模式（OpenAI 兼容）
 
 | 服务 | Base URL | 模型示例 |
 |---|---|---|
@@ -54,7 +54,22 @@ python code/agent_app.py --rebuild            # 从 outputs/tables/ 强制重建
 | 通义 DashScope 兼容模式 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` |
 | 本地 Ollama | `http://127.0.0.1:11434/v1` | 本地模型名，Key 随意 |
 
-Key 只保存在本机 `outputs/agent_ui/settings.json`（0600 权限），除你填写的接口外不会发往任何地方；也支持环境变量 `DEEPSEEK_API_KEY` / `OPENAI_API_KEY` / `LLM_API_KEY`（`LLM_BASE_URL` / `LLM_MODEL`）。超时、Key 无效或返回格式异常时自动回退规则结果并提示。
+填 Key → 「测试连接」→「保存」。Key 只保存在本机 `outputs/agent_ui/settings.json`（0600）；也支持 `DEEPSEEK_API_KEY` / `OPENAI_API_KEY` / `LLM_API_KEY` 以及 `LLM_BASE_URL` / `LLM_MODEL`。
+
+### 本地微调模式
+
+```bash
+pip install -r requirements-lora.txt
+# 把 Qwen2.5-3B-Instruct 权重放到 models/Qwen2.5-3B-Instruct
+# 包内试训适配器在 outputs/lora/adapter_pilot
+```
+
+设置 → **本地微调**：填写基座模型路径与适配器路径 → 测试 → 保存。CPU 推理较慢，推荐 GPU。该适配器由 160 条伪标签、24 步试训得到，仅用于验证训练/推理链路，不代表准确率。
+
+## Agent Skill
+
+完整技能定义（角色、数据口径、工具、工作流、输出规则、护栏）见
+[`skills/openecrs_agent.md`](skills/openecrs_agent.md)，与 `agent_prompts.py` 使用同一份技能文本，保证 API 与本地模型行为一致。
 
 ## 程序化调用
 
@@ -68,49 +83,45 @@ curl -s -X POST http://127.0.0.1:8765/api/pdf -H 'Content-Type: application/json
 
 | 接口 | 说明 |
 |---|---|
-| `POST /api/chat` | `{session, message, lang}` → 结构化回答（建议、说明、指标、排名、对比、证据、行动、风险、快捷问题、引擎信息） |
-| `POST /api/pdf` | `{session, lang}` → `application/pdf` 建议书；无本地浏览器时回退打印视图 |
-| `GET /api/settings` / `POST /api/settings` | 读取（Key 脱敏）/ 保存大模型设置 |
-| `POST /api/test` | 测试大模型接口连通性 |
-| `GET /api/health` | 服务、数据与 PDF 后端状态 |
+| `POST /api/chat` | `{session, message, lang}` → 回答（建议、说明、指标、排名、对比、证据、行动、风险、引擎信息、Agent 过程） |
+| `POST /api/pdf` | `{session, lang}` → `application/pdf` 建议书 |
+| `GET/POST /api/settings` | 读取（Key 脱敏）/ 保存 LLM 设置 |
+| `POST /api/test` | 测试当前后端 |
+| `GET /api/health` | 服务、LLM 就绪状态、数据与 PDF 后端 |
 | `GET /api/data` | 界面使用的紧凑数据集 |
+
+未配置 LLM 时，`/api/chat` 返回 **HTTP 428** 与 `{"code": "llm_required", "hint": ...}` —— 绝不回退到模板回答。
 
 ## 证据库
 
-数据快照日期 **2026-11-20**：
-
-- 52,007 条原始记录 → 45,306 条清洗记录（Hacker News、GitHub、arXiv、Stack Overflow、Product Hunt）。
-- 19,621 个需求/供给单元 → 15,525 条需求单元 → 2,848 条高置信场景样本（18.34%）。
-- 12 个 AI 应用场景，AHP 权重：需求 45% + 供给缺口 25% + 技术可行性 18% + 商业价值 12%（CR = 0.0002）。
-- 15,525 条逐记录证据审查；162 条通过四门机会判定；`outputs/agent_ui/data.json` 内置 72 条原文证据。
+快照 **2026-11-20**：52,007 条原始记录 → 45,306 条清洗记录（Hacker News、GitHub、arXiv、Stack Overflow、Product Hunt）→ 19,621 个需求/供给单元 → 15,525 条需求单元 → 2,848 条高置信场景样本（18.34%）。15,525 条证据审查、162 条四门机会、`outputs/agent_ui/data.json` 内置 72 条原文证据。
 
 机会总分前五：安全合规与隐私 **62.41**；多智能体与任务编排 **57.86**；知识管理与文档问答 **57.28**；编程与代码智能 **56.20**；办公协作与会议效率 **48.98**。
 
-证据库由独立的分析流水线（采集、清洗、弱监督、评分、证据审查）产出。本仓库只包含 **Agent 运行所需** 的代码、打包数据与重建 data.json 所需的对账表，不包含原始爬取数据与微调 LoRA 适配器。
+产出证据库的分析流水线（采集、清洗、弱监督、评分、证据审查）不在本仓库内；本仓库只包含 Agent 运行时与重建 `data.json` 所需的对账表。
 
 ## 目录结构
 
 ```
 OpenECRS/
 ├─ code/
-│  ├─ agent_app.py        # 本地服务：静态界面 + /api/chat + /api/pdf + 设置/测试
-│  ├─ agent_engine.py     # 双语的确定性推理（排名 / 单场景 / 对比 / 证据 / 风险 / 行动）
-│  ├─ scenario_names.py   # 统一的英文场景名与路线名
-│  ├─ agent_llm.py        # 可选 OpenAI 兼容大模型桥接（失败自动回退）
-│  ├─ agent_pdf.py        # A4 建议书 HTML 模板 + 本机 Chromium PDF 渲染
-│  ├─ agent_ui.html       # 单文件双语对话界面（无构建、无 CDN）
-│  ├─ agent_ui_data.py    # 从 outputs/tables/ 重建 outputs/agent_ui/data.json
-│  ├─ test_agent_ui.py    # 界面 / 推理 / PDF / HTTP 测试（含英文模式）
-│  └─ test_agent_llm.py   # 大模型桥接测试（本地 mock 端点）
-├─ outputs/
-│  ├─ agent_ui/data.json  # 打包数据集：12 场景 + 72 条原文证据
-│  └─ tables/             # 对账表（评分、供给、证据审查、质量卡）
-├─ docs/
-│  ├─ screenshots/        # 中英界面截图
-│  └─ examples/           # 中英文 PDF 建议书示例
-├─ openecrs.command       # macOS 一键启动
-├─ requirements.txt
-├─ requirements-lora.txt  # （未随包分发的）LoRA 微调依赖
+│  ├─ agent_app.py        # HTTP 服务 + 静态界面 + API
+│  ├─ agent_core.py       # Agent 循环：规划 → 工具 → 作答、会话记忆、过程记录
+│  ├─ agent_prompts.py    # Agent Skill → 规划/作答 prompt（中英）
+│  ├─ agent_tools.py      # 场景数据、排名、对比、证据检索等离线工具
+│  ├─ agent_settings.py   # API / 本地后端设置、旧配置迁移、就绪检查
+│  ├─ agent_providers.py  # 后端解析与连通性测试
+│  ├─ agent_llm.py        # OpenAI 兼容 HTTP 客户端
+│  ├─ agent_local.py      # 本地 Qwen2.5 + LoRA 后端（可选）
+│  ├─ agent_pdf.py        # A4 建议书模板与本地 Chromium 渲染
+│  ├─ agent_ui.html       # 单文件双语界面（无构建、无 CDN）
+│  ├─ agent_ui_data.py    # 重建 outputs/agent_ui/data.json
+│  └─ test_*.py           # 工具 / 核心 / HTTP 测试（18 项）
+├─ skills/openecrs_agent.md
+├─ outputs/agent_ui/data.json
+├─ outputs/tables/        # 对账表（评分、证据审查、质量卡）
+├─ docs/screenshots、docs/examples
+├─ openecrs.command、requirements.txt、requirements-lora.txt
 └─ README.md / README.zh-CN.md
 ```
 
@@ -118,19 +129,20 @@ OpenECRS/
 
 ```bash
 cd code
-python -m unittest test_agent_ui test_agent_llm -v   # 31 项
+python -m unittest test_agent_tools test_agent_core test_agent_http -v   # 18 项
 ```
 
-覆盖中英双语、排名/单场景/对比/追问逻辑、PDF 生成（无本地 Chromium 时跳过）、HTTP 层，以及基于本地 mock 端点的大模型桥接。
+覆盖离线工具、规划/作答校验（假 provider）、未配置 LLM 的拒绝路径、HTTP 设置/测试/对话（本地 mock OpenAI 端点）以及有浏览器时的 PDF 导出。
 
 ## 口径与局限
 
-- 场景标签来自弱监督（词典 + TF-IDF/Logistic Regression 扩展），不是人工全量标注。
-- 来源偏差：Hacker News/GitHub 占比较高，不能当作真实市场占比。
-- 供给成熟度用仓库/Star/论文/Show HN 近似；付费意愿来自文本信号，不等同真实付费。
-- 规则置信度**未经人工校准**（暂无金标），只作为线索使用；可选大模型只改措辞，不改变数字、排名与证据。
+- 场景标签来自弱监督，不是人工全量标注。
+- 来源偏差：Hacker News / GitHub 占比较高，不能当作真实市场占比。
+- 供给成熟度用仓库/Star/论文/Show HN 近似；付费意愿来自文本信号。
+- 规则置信度**未经人工校准**（无金标），智能体会在每份建议书中注明。
+- 同一问题在不同轮次措辞可能不同；数字与证据是确定性的。
 - 公开数据版权归各平台与作者所有。
 
 ## 许可与署名
 
-仓库代码供研究与评估使用；引用的第三方数据片段仅用于证据溯源，版权归原作者所有。示例建议书见 `docs/examples/`。
+仓库代码供研究与评估使用；引用的第三方数据片段仅用于证据溯源，版权归原作者所有。

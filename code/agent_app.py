@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Local web app for the conversational evidence agent.
+"""OpenECRS local web app.
+
+OpenECRS is an LLM-required agent: the model plans and writes every answer; the
+offline tools only retrieve grounded data. Configure an OpenAI-compatible API or
+a local fine-tuned adapter in Settings before chatting.
 
 Run:
-    python code/agent_app.py                 # http://127.0.0.1:8765
-    python code/agent_app.py --port 9000 --open
-
-The app serves a minimal chat UI (code/agent_ui.html), the compact evidence
-dataset (outputs/agent_ui/data.json) and two JSON endpoints:
-    POST /api/chat   {"session": "...", "message": "..."}
-    POST /api/pdf    {"session": "..."}            -> application/pdf
-If no local Chrome/Edge is available, /api/pdf returns a fallback link to a
-print-ready report page instead of failing.
+    python code/agent_app.py --open        # http://127.0.0.1:8765
 """
 from __future__ import annotations
 
@@ -18,47 +14,77 @@ import argparse
 import json
 import socket
 import threading
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, urlparse
 
-from agent_engine import OpenECRSAgent, load_data
-from agent_llm import (LLMError, generate_advice, load_settings, provider_label,
-                       public_settings, resolve_config, save_settings, test_connection)
-from agent_pdf import PDF_DIR, build_report_html, find_browser, render_pdf, safe_filename
+import agent_core
+import agent_pdf
+import agent_providers
+import agent_settings
+import agent_tools
 
 BASE = Path(__file__).resolve().parents[1]
 UI_FILE = BASE / "code" / "agent_ui.html"
 DATA_FILE = BASE / "outputs" / "agent_ui" / "data.json"
+LOG_FILE = BASE / "outputs" / "agent_ui" / "agent.log"
 
 SESSIONS: dict[str, dict] = {}
 LOCK = threading.Lock()
-AGENT: OpenECRSAgent | None = None
+DATA = None
 
 
-def get_agent() -> OpenECRSAgent:
-    global AGENT
-    if AGENT is None:
-        AGENT = OpenECRSAgent(load_data())
-    return AGENT
+def get_data() -> agent_tools.ScenarioData:
+    global DATA
+    if DATA is None:
+        DATA = agent_tools.ScenarioData(agent_tools.load_data())
+    return DATA
+
+
+def log_event(**fields) -> None:
+    try:
+        LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        payload = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"), **fields}
+        with LOG_FILE.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except OSError:
+        pass
 
 
 def _session(sid: str) -> dict:
-    if not sid:
-        sid = "default"
+    sid = sid or "default"
     with LOCK:
-        return SESSIONS.setdefault(sid, {"turns": 0})
+        return SESSIONS.setdefault(sid, {"turns": 0, "history": []})
+
+
+def _merge_for_test(body: dict) -> dict:
+    """Apply unsaved form values on top of the saved settings (for Test)."""
+    settings = agent_settings.load_settings()
+    if body.get("backend") in ("api", "local"):
+        settings["backend"] = body["backend"]
+    for section in ("api", "local"):
+        incoming = body.get(section)
+        if isinstance(incoming, dict):
+            for key in settings[section]:
+                value = incoming.get(key)
+                if value not in (None, ""):
+                    settings[section][key] = value
+    key = body.get("api_key") or (body.get("api") or {}).get("api_key")
+    if key:
+        settings["api"]["api_key"] = str(key).strip()
+    return settings
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "OpenECRS/1.0"
+    server_version = "OpenECRS/2.0"
 
-    def log_message(self, fmt, *args):  # keep the console clean
+    def log_message(self, fmt, *args):
         pass
 
     # ------------------------------------------------------------ utilities
-    def _send(self, status: int, body: bytes, ctype: str, extra: dict | None = None):
+    def _send(self, status, body: bytes, ctype: str, extra: dict | None = None):
         self.send_response(status)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
@@ -68,7 +94,7 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _json(self, status: int, payload: dict):
+    def _json(self, status, payload: dict):
         self._send(status, json.dumps(payload, ensure_ascii=False).encode("utf-8"),
                    "application/json; charset=utf-8")
 
@@ -76,9 +102,8 @@ class Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length") or 0)
         if length <= 0 or length > 2_000_000:
             return {}
-        raw = self.rfile.read(length)
         try:
-            value = json.loads(raw.decode("utf-8"))
+            value = json.loads(self.rfile.read(length).decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError):
             return {}
         return value if isinstance(value, dict) else {}
@@ -91,17 +116,17 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/data":
             return self._send(200, DATA_FILE.read_bytes(), "application/json; charset=utf-8")
         if path == "/api/health":
-            config = resolve_config()
-            return self._json(200, {"ok": True, "pdf_backend": bool(find_browser()),
-                                    "data_ready": DATA_FILE.exists(),
-                                    "llm_enabled": bool(config["enabled"]),
-                                    "llm_ready": bool(config["enabled"] and config["api_key"])})
+            info = agent_providers.provider_info()
+            public = agent_settings.public_settings()
+            return self._json(200, {"ok": True, "llm_ready": public["ready"],
+                                    "backend": info["backend"], "model": info["model"],
+                                    "pdf_backend": bool(agent_pdf.find_browser()),
+                                    "data_ready": DATA_FILE.exists()})
         if path == "/api/settings":
-            return self._json(200, public_settings())
+            return self._json(200, agent_settings.public_settings())
         if path == "/report":
             query = parse_qs(urlparse(self.path).query)
-            sid = (query.get("sid") or ["default"])[0]
-            return self._print_report(sid)
+            return self._print_report((query.get("sid") or ["default"])[0])
         return self._json(404, {"error": "not found"})
 
     def do_POST(self):
@@ -113,10 +138,11 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/pdf":
                 return self._pdf(body)
             if path == "/api/settings":
-                return self._saveSettings(body)
+                return self._save_settings(body)
             if path == "/api/test":
-                return self._testConnection(body)
+                return self._test(body)
         except Exception as exc:  # never kill the connection silently
+            log_event(route=path, ok=False, error=f"{type(exc).__name__}: {exc}")
             return self._json(500, {"error": f"{type(exc).__name__}: {exc}"})
         return self._json(404, {"error": "not found"})
 
@@ -125,105 +151,89 @@ class Handler(BaseHTTPRequestHandler):
         message = str(body.get("message") or "").strip()
         if not message:
             return self._json(400, {"error": "message is required"})
-        sid = str(body.get("session") or "default")
+        session_id = str(body.get("session") or "default")
         lang = str(body.get("lang") or "en").lower()
-        if lang not in ("en", "zh"):
-            lang = "en"
-        state = _session(sid)
+        settings = agent_settings.load_settings()
+        public = agent_settings.public_settings()
+        if not public["ready"]:
+            log_event(route="/api/chat", ok=False, error="llm_required", message=message[:120])
+            return self._json(428, {
+                "error": "OpenECRS requires an LLM. Configure an API key or a local model first.",
+                "code": "llm_required",
+                "hint": public["ready_detail"],
+            })
+        state = _session(session_id)
         try:
-            answer = get_agent().answer(message, state, lang=lang)
-            answer["engine"] = self._apply_llm(answer, message)
-            # keep the localised payload for the PDF endpoint (session internals stay keyed in Chinese)
-            state["last_answer"] = answer
-        except Exception as exc:  # keep the UI alive, surface the reason
-            return self._json(500, {"error": f"{type(exc).__name__}: {exc}"})
+            runtime = agent_core.AgentRuntime(settings, get_data())
+            answer = runtime.chat(message, state, lang=lang)
+        except agent_providers.LLMRequiredError as exc:
+            log_event(route="/api/chat", ok=False, error=str(exc), message=message[:120])
+            return self._json(428, {"error": str(exc), "hint": exc.hint, "code": "llm_required"})
+        except (agent_core.AgentError, agent_providers.ProviderError) as exc:
+            log_event(route="/api/chat", ok=False, error=str(exc), message=message[:120])
+            return self._json(502, {"error": str(exc), "code": "llm_error"})
+        log_event(route="/api/chat", ok=True, lang=lang, session=session_id,
+                  kind=answer.get("kind"), engine=(answer.get("engine") or {}).get("label"),
+                  latency_ms=(answer.get("engine") or {}).get("latency_ms"),
+                  message=message[:120])
         return self._json(200, answer)
 
-    @staticmethod
-    def _apply_llm(answer: dict, message: str) -> dict:
-        """Rewrite advice/reply with the configured model; never break the answer."""
-        config = resolve_config()
-        if not config["enabled"]:
-            return {"kind": "rule", "model": "", "provider": ""}
-        if not config["api_key"]:
-            error = "已启用大模型，但没有配置 API Key，本次已回退规则结果。"
-            answer["llm_error"] = error
-            return {"kind": "rule", "model": "", "provider": "", "error": error}
-        try:
-            llm = generate_advice(answer, message, config, lang=answer.get("lang") or "en")
-        except LLMError as exc:
-            answer["llm_error"] = str(exc)
-            return {"kind": "rule", "model": "", "provider": "", "error": str(exc)}
-        answer["advice"] = llm["advice"]
-        answer["reply"] = llm["reply"]
-        if llm.get("partial"):
-            answer["llm_error"] = "模型返回的 JSON 不完整，已直接采用模型文本。"
-        return {"kind": "llm", "model": llm["model"], "provider": provider_label(config["base_url"]),
-                "latency_ms": llm["latency_ms"], "usage": llm.get("usage") or {},
-                "partial": bool(llm.get("partial"))}
-
     def _pdf(self, body: dict):
-        sid = str(body.get("session") or "default")
-        state = _session(sid)
+        session_id = str(body.get("session") or "default")
+        state = _session(session_id)
         answer = state.get("last_answer")
         if not answer:
-            return self._json(400, {"error": "先进行一次对话，再导出 PDF"})
-        agent = get_agent()
-        context = agent.report_context(answer)
-        context["engine"] = answer.get("engine") or {"kind": "rule"}
-        report_html = build_report_html(context)
-        filename = safe_filename(context)
-        out_path = PDF_DIR / filename
-        payload, error = render_pdf(report_html, out_path)
+            return self._json(400, {"error": "Have a conversation first. / 先进行一次对话，再导出 PDF"})
+        lang = str(body.get("lang") or answer.get("lang") or "en")
+        context = get_data().report_context(answer, lang)
+        context["engine"] = answer.get("engine") or {}
+        report_html = agent_pdf.build_report_html(context)
+        filename = agent_pdf.safe_filename(context)
+        out_path = agent_pdf.PDF_DIR / filename
+        payload, error = agent_pdf.render_pdf(report_html, out_path)
+        log_event(route="/api/pdf", lang=lang, ok=bool(payload), error=error)
         if payload is None:
-            return self._json(200, {"fallback": f"/report?sid={sid}", "filename": filename, "hint": error})
+            return self._json(200, {"fallback": f"/report?sid={session_id}", "filename": filename, "hint": error})
         return self._send(200, payload, "application/pdf",
-                          {"Content-Disposition": f"attachment; filename*=UTF-8''{_quote(filename)}",
-                           "X-PDF-Path": f"outputs/agent_ui/pdf/{_quote(filename)}"})
+                          {"Content-Disposition": f"attachment; filename*=UTF-8''{quote(filename)}",
+                           "X-PDF-Path": f"outputs/agent_ui/pdf/{quote(filename)}"})
 
-    def _saveSettings(self, body: dict):
-        try:
-            save_settings(body, clear_key=bool(body.get("clear_key")))
-        except LLMError as exc:
-            return self._json(400, {"error": str(exc)})
-        return self._json(200, public_settings())
-
-    def _testConnection(self, body: dict):
-        settings = load_settings()
-        merged = dict(settings)
-        for key in ("base_url", "model", "temperature", "max_tokens", "timeout"):
-            if body.get(key) not in (None, ""):
-                merged[key] = body[key]
-        if body.get("api_key"):
-            merged["api_key"] = body["api_key"]
-        config = resolve_config(merged)
-        config["enabled"] = True
-        if not config["api_key"]:
-            return self._json(200, {"ok": False, "model": config["model"], "latency_ms": 0,
-                                    "reply": "", "error": "还没有配置 API Key"})
-        return self._json(200, test_connection(config))
-
-    def _print_report(self, sid: str):
-        state = _session(sid)
+    def _print_report(self, session_id: str):
+        state = _session(session_id)
         answer = state.get("last_answer")
         if not answer:
-            hint = "<meta charset='utf-8'>先进行一次对话，再导出报告。"
+            hint = "<meta charset='utf-8'>Have a conversation first. / 先进行一次对话。"
             return self._send(200, hint.encode("utf-8"), "text/html; charset=utf-8")
-        context = get_agent().report_context(answer)
-        report_html = build_report_html(context)
+        lang = answer.get("lang") or "en"
+        context = get_data().report_context(answer, lang)
+        context["engine"] = answer.get("engine") or {}
+        page = agent_pdf.build_report_html(context)
         print_js = ("<script>window.addEventListener('load',function(){"
                     "setTimeout(function(){window.print();},350);});</script>")
-        page = report_html.replace("</body>", print_js + "</body>")
-        return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
+        return self._send(200, (page.replace("</body>", print_js + "</body>")).encode("utf-8"),
+                          "text/html; charset=utf-8")
 
+    def _save_settings(self, body: dict):
+        try:
+            agent_settings.save_settings(body, clear_key=bool(body.get("clear_key")))
+        except agent_settings.SettingsError as exc:
+            log_event(route="/api/settings", ok=False, error=str(exc))
+            return self._json(400, {"error": str(exc)})
+        public = agent_settings.public_settings()
+        log_event(route="/api/settings", ok=True, backend=public["backend"], ready=public["ready"])
+        return self._json(200, public)
 
-def _quote(value: str) -> str:
-    from urllib.parse import quote
-    return quote(value, safe="")
+    def _test(self, body: dict):
+        settings = _merge_for_test(body)
+        result = agent_providers.test_provider(settings)
+        log_event(route="/api/test", backend=result.get("backend"), ok=result.get("ok"),
+                  model=result.get("model"), latency_ms=result.get("latency_ms"),
+                  error=result.get("error"))
+        return self._json(200, result)
 
 
 def find_free_port(host: str, port: int) -> int:
-    for offset in range(0, 30):
+    for offset in range(30):
         candidate = port + offset
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -232,15 +242,15 @@ def find_free_port(host: str, port: int) -> int:
                 return candidate
             except OSError:
                 continue
-    raise SystemExit("没有可用端口，请用 --port 指定其它端口")
+    raise SystemExit("No free port; use --port to choose another one.")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="OpenECRS · 本地对话界面")
+    parser = argparse.ArgumentParser(description="OpenECRS · LLM-required bilingual agent")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--open", action="store_true", help="启动后自动打开浏览器")
-    parser.add_argument("--rebuild", action="store_true", help="强制从 outputs/tables/ 重建 data.json")
+    parser.add_argument("--open", action="store_true")
+    parser.add_argument("--rebuild", action="store_true", help="rebuild outputs/agent_ui/data.json")
     args = parser.parse_args()
 
     if args.rebuild or not DATA_FILE.exists():
@@ -250,19 +260,19 @@ def main():
     port = find_free_port(args.host, args.port)
     url = f"http://{args.host}:{port}"
     server = ThreadingHTTPServer((args.host, port), Handler)
-    print("=" * 62)
-    print("  OpenECRS · AI Opportunity Radar (bilingual local agent)")
-    print(f"  打开：{url}")
-    print(f"  PDF 导出后端：{'本地浏览器可用' if find_browser() else '未找到浏览器（将回退到打印视图）'}")
-    llm = resolve_config()
-    if llm["enabled"] and llm["api_key"]:
-        print(f"  大模型模式：已启用 · {llm['model']} @ {provider_label(llm['base_url'])}")
-    elif llm["enabled"]:
-        print("  大模型模式：已启用但缺少 API Key，将回退规则结果")
+    public = agent_settings.public_settings()
+    info = agent_providers.provider_info()
+    print("=" * 66)
+    print("  OpenECRS · LLM-required evidence agent")
+    print(f"  Open: {url}")
+    print(f"  Backend: {public['backend']} · {info['label']}")
+    if public["ready"]:
+        print("  LLM: ready")
     else:
-        print("  大模型模式：关闭（右上角设置里可接入 OpenAI 兼容接口）")
-    print("  Ctrl+C 停止")
-    print("=" * 62)
+        print(f"  LLM: NOT configured — open Settings first ({public['ready_detail']})")
+    print(f"  PDF: {'local browser found' if agent_pdf.find_browser() else 'no browser (print fallback)'}")
+    print("  Ctrl+C to stop")
+    print("=" * 66)
     if args.open:
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:
