@@ -6,7 +6,7 @@
 把公开的 AI 工具信号，变成可核查、可排序、可执行的产品机会判断。</p>
 
 <p align="center">
-  <img alt="tests" src="https://img.shields.io/badge/tests-88%20passing-brightgreen">
+  <img alt="tests" src="https://img.shields.io/badge/tests-94%20passing-brightgreen">
   <img alt="LLM required" src="https://img.shields.io/badge/LLM-required-blue">
   <img alt="languages" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20JA%20%7C%20ES-orange">
   <img alt="python" src="https://img.shields.io/badge/python-3.11%2B-3776AB">
@@ -45,10 +45,11 @@
 - **从机制上保证有据可查**：12 个场景、72 条原文，证据附来源、年份、置信度与四门标记。
 - **六个实际工具**：决策向导、证据浏览器、PoC 计划、组合预算、场景深潜、收藏工作区，外加上下文视频搜索。
 - **一页纸 PDF 建议书**：建议、评分卡、证据摘录、行动计划、风险与口径局限。
-- **多语言 + 角色化**：默认跟随系统，支持 English / 中文 / 日本語 / Español；可按创业 / 大厂 / 投资 / 产品视角回答。
+- **多语言 + 角色化**：默认跟随系统，支持 English / 中文 / 日本語 / Español；每次请求锁定输出语言，切换后不会回退成中文。
 - **历史对话保留**：刷新页面或重启服务后恢复，支持搜索、重命名、删除。
 - **干净可折叠界面**：官方 Logo、响应式侧边栏、模型切换、设置分为「模型 / 偏好设置」。
-- **默认完全本地运行**：无需构建、无 CDN、无遥测；只有你配置的 LLM 端点会收到请求。
+- **可选联网搜索**：独立开关（默认关闭），用于最新新闻/竞品/监管；结果明确标注为外部网页，不混入证据评分。
+- **默认完全本地运行**：无需构建、无 CDN、无遥测；只向你配置的 LLM 端点发请求（开启联网搜索时，搜索词也会发给 Bing）。
 
 ### 设计原则
 
@@ -65,9 +66,13 @@
 |---|---|
 | ![工作区](docs/screenshots/hero-zh.png) | ![场景深潜](docs/screenshots/feature-detail.png) |
 
-| 决策向导 | 侧边栏与个人信息菜单 |
-|---|---|
+| 决策向导 | 侧边栏与个人信息菜单 | 联网搜索 |
+|---|---|---|
 | ![决策向导](docs/screenshots/feature-wizard.png) | ![侧边栏](docs/screenshots/sidebar-profile.png) |
+
+| 联网搜索（默认关闭） |
+|---|
+| ![联网搜索](docs/screenshots/web-search.png) |
 
 更多截图见 [`docs/screenshots/`](docs/screenshots/)，示例 PDF 见 [`docs/examples/`](docs/examples/)。
 
@@ -84,6 +89,7 @@
 | **场景深潜** | 机会评分卡、年度趋势、来源结构、供给信号（仓库/Star/论文/Show HN）、证据摘录。 |
 | **收藏工作区** | 收藏场景、写备注，并让 Agent 对比收藏清单。 |
 | **视频搜索** | 按场景生成 YouTube / B站 外部搜索链接（明确标注外部内容、非证据库）。 |
+| **联网搜索（可选）** | 一个开关查最新新闻/竞品/监管；结果是 Bing 网页，标注外部，不参与评分。 |
 | **对话** | 自然语言提问：排名、场景分析、对比、证据、PoC、视频、寒暄等。 |
 | **PDF 建议书** | 一页 A4：建议、评分卡、证据、行动、风险与口径说明。 |
 
@@ -164,7 +170,7 @@ pip install -r requirements-lora.txt
 
 ## 语言与角色
 
-- **语言**：跟随系统（默认）、English、中文、日本語、Español。“跟随系统”读取 `navigator.language`（zh/ja/es，否则英文），选择会本地记忆，并随每次请求发送。
+- **语言**：跟随系统（默认）、English、中文、日本語、Español。“跟随系统”读取 `navigator.language`（zh/ja/es，否则英文），选择会本地记忆，并随每次请求发送；prompt 会强制输出语言，不受历史对话或数据语言影响。
 - **角色**：创业、大厂、投资、产品。角色改变的是规划优先级与口吻（可行性/MVP、合规/规模化、市场/竞争、路线图/指标），不改变数字。
 - 两者都在 **设置 → 偏好设置**；底部个人信息菜单提供 **回答设置** 快捷入口。
 
@@ -184,7 +190,7 @@ curl -s -X POST http://127.0.0.1:8765/api/pdf \
 
 | 端点 | 方法 | 说明 |
 |---|---|---|
-| `/api/chat` | POST | `{session, message, lang, role}` → 建议、说明、指标、排名、对比、证据、视频、行动、风险、引擎信息、Agent 过程 |
+| `/api/chat` | POST | `{session, message, lang, role, web_search}` → 建议、说明、指标、排名、对比、证据、视频、行动、风险、引擎信息、Agent 过程 |
 | `/api/pdf` | POST | `{session, lang}` → `application/pdf` 建议书 |
 | `/api/settings` | GET/POST | 读取（Key 脱敏）/ 创建或更新模型配置 |
 | `/api/active` | POST | 切换当前模型配置 |
@@ -250,6 +256,7 @@ OpenECRS/
 │  ├─ agent_tools.py        # 场景数据、排名、对比、证据检索
 │  ├─ agent_features.py     # 向导 / PoC / 组合算法与叙述 prompt
 │  ├─ agent_insights.py     # 证据索引、年度趋势、视频链接
+│  ├─ agent_web.py          # 可选 Bing 联网搜索（外部、默认关闭）
 │  ├─ agent_settings.py     # 模型配置、就绪检查、旧配置迁移
 │  ├─ agent_providers.py    # 后端解析与连通性测试
 │  ├─ agent_llm.py          # OpenAI 兼容 HTTP 客户端
@@ -260,7 +267,7 @@ OpenECRS/
 │  ├─ agent_ui_features.css
 │  ├─ agent_ui_data.py      # 重建 data.json + insights.json
 │  ├─ assets/               # 官方 Logo 图标 / 字标 / favicon
-│  └─ test_*.py             # 88 项测试
+│  └─ test_*.py             # 94 项测试
 ├─ skills/openecrs_agent.md # 人类可读的 Agent Skill 定义
 ├─ outputs/
 │  ├─ agent_ui/data.json
@@ -277,8 +284,8 @@ OpenECRS/
 
 ```bash
 cd code
-python -m unittest test_agent_tools test_agent_core test_agent_http test_agent_features test_agent_insights -v
-# 88 项
+python -m unittest test_agent_tools test_agent_core test_agent_http test_agent_features test_agent_insights test_agent_web -v
+# 94 项
 ```
 
 覆盖：离线工具、规划/作答校验（假 provider，含寒暄、视频路由、角色）、未配置 LLM 拒绝路径、HTTP 设置/测试/对话/模型切换/功能端点（mock OpenAI 端点）、向导/PoC/组合算法、洞察聚合、历史持久化，以及有浏览器时的 PDF 导出。
@@ -289,7 +296,7 @@ python -m unittest test_agent_tools test_agent_core test_agent_http test_agent_f
 
 - API Key 与本地模型路径仅保存在 `outputs/agent_ui/settings.json`（权限 `0600`），不会提交到仓库。
 - 历史对话、收藏、PDF 与日志保存在 `outputs/agent_ui/` 下，并已被 gitignore。
-- 无遥测、无分析、无 CDN；唯一外部请求是发往你配置的 LLM 端点（以及点击视频链接时浏览器打开外部页面）。
+- 无遥测、无分析、无 CDN；唯一外部请求是发往你配置的 LLM 端点；开启**联网搜索**时，搜索词还会发给 Bing，外部链接仅在你点击时打开。
 - 界面由本机 Python HTTP 服务提供；不要在没有鉴权的情况下暴露到不可信网络。
 
 ---
@@ -307,6 +314,8 @@ python -m unittest test_agent_tools test_agent_core test_agent_http test_agent_f
 **为什么估算都写“heuristic”？** 人力/成本区间是规划辅助，不是实测市场数据，需自行验证。
 
 **为什么有些置信度很低？** 证据审查是规则影子审查、无人工金标；低置信度会如实展示，而不是隐藏。
+
+**什么时候该开联网搜索？** 只有答案依赖 2026-11-20 快照之后的信息（新闻、竞品、监管、融资）时才开；纯证据/审计/离线场景保持关闭，网页结果不参与评分。
 
 ---
 

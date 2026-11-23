@@ -111,6 +111,25 @@
   .msg.user{justify-content:flex-end}
   .avatar{width:26px;height:26px;flex:0 0 26px;border-radius:8px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;letter-spacing:.03em;margin-top:2px}
   .avatar-logo{background:url('/assets/logo-mark.png') center/contain no-repeat;background-color:transparent;color:transparent;border-radius:8px}
+  .web-pill{gap:5px;cursor:pointer;color:var(--muted)}
+  .web-pill svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .web-pill.on{border-color:#c9e3d3;background:#f2fbf5;color:#1b6b45}
+  .web-pill.on svg{stroke:#1b6b45}
+  .web-setting{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px;border:1px solid var(--line);border-radius:12px;margin:6px 0 14px}
+  .web-copy b{display:block;font-size:12.5px;color:var(--ink);font-weight:500}
+  .web-copy span{display:block;font-size:11px;color:var(--faint);line-height:1.65;margin-top:3px;max-width:360px}
+  .switch2{position:relative;width:38px;height:22px;flex:0 0 auto;margin-top:2px;cursor:pointer}
+  .switch2 input{position:absolute;opacity:0;width:0;height:0}
+  .switch2 span{position:absolute;inset:0;background:var(--line-strong);border-radius:999px;transition:.15s}
+  .switch2 span:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch2 input:checked+span{background:#111214}
+  .switch2 input:checked+span:before{transform:translateX(16px)}
+  .web-list{display:flex;flex-direction:column;gap:6px}
+  .web-item{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);text-decoration:none}
+  .web-item:hover{background:var(--soft);border-color:var(--line-strong)}
+  .web-title{font-size:12.5px;color:var(--ink);line-height:1.5}
+  .web-url{font-size:10px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .web-snip{font-size:11px;color:var(--muted);line-height:1.6}
   .settings-tabs{display:flex;gap:4px;background:var(--soft);border-radius:10px;padding:4px;margin:0 0 16px}
   .settings-tabs button{flex:1;padding:7px 10px;border-radius:7px;font-size:12px;color:var(--muted)}
   .settings-tabs button.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
@@ -463,6 +482,10 @@
         <span class="dot"></span><span id="profileLabel">LLM</span>
         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </button>
+      <button class="pill web-pill" id="webBtn" title="Web search: off">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>
+        <span id="webBtnLabel">Web off</span>
+      </button>
       <div class="top-actions">
         <button class="btn" id="pdfTop" title="Export the last answer as a PDF brief">Export PDF</button>
       </div>
@@ -530,6 +553,10 @@
             <option value="investor">Investor / 投资</option>
             <option value="pm">Product / 产品</option>
           </select></label>
+          <div class="web-setting">
+            <div class="web-copy"><b id="webTitle">Web search</b><span id="webHint"></span></div>
+            <label class="switch2"><input type="checkbox" id="webToggle"><span></span></label>
+          </div>
           <p class="modal-foot" id="prefsFoot"></p>
         </div>
       </div>
@@ -630,7 +657,12 @@ const I18N = {
     exportPdf: 'Export PDF', settingsTitle: 'LLM settings',
     profileMenuTitle: 'Models', addModel: '+ Add model', manageModels: 'Settings',
     historyLabel: 'Recent chats', noHistory: 'No conversations yet.', noResults: 'No matching conversations.',
-    aboutLabel: 'About data', answerSettingsLabel: 'Answer settings', prefLanguage: 'Language', prefRole: 'Answer as', fieldLanguage: 'Language',
+    aboutLabel: 'About data', answerSettingsLabel: 'Answer settings',
+    webTitle: 'Web search', webOn: 'Web on', webOff: 'Web off',
+    webHint: 'Off by default. Turn on for latest news, competitors, regulation or anything after the 2026-11-20 snapshot. Queries are sent to an external search engine (Bing); results are labelled external web, not evidence. Turn off for evidence-only, audit or offline work.',
+    webSourcesTitle: 'Web sources (external)', webExternal: 'External web page — verify before use',
+    webEnabledToast: 'Web search enabled — results will be labelled external.',
+    webDisabledToast: 'Web search disabled — evidence base only.', prefLanguage: 'Language', prefRole: 'Answer as', fieldLanguage: 'Language',
     settingsTabModel: 'Model', settingsTabPrefs: 'Preferences',
     prefsDesc: 'Interface preferences. Language changes reload the workspace; the answer role applies to the next question immediately.',
     prefsFoot: 'Preferences are stored locally. Model configuration is under the Model tab.',
@@ -732,7 +764,12 @@ const I18N = {
     exportPdf: '导出 PDF', settingsTitle: '大模型设置',
     profileMenuTitle: '模型', addModel: '+ 添加模型', manageModels: '设置',
     historyLabel: '历史对话', noHistory: '还没有历史对话。', noResults: '没有匹配的对话。',
-    aboutLabel: '数据说明', answerSettingsLabel: '回答设置', prefLanguage: '语言', prefRole: '回答视角', fieldLanguage: '语言',
+    aboutLabel: '数据说明', answerSettingsLabel: '回答设置',
+    webTitle: '联网搜索', webOn: '联网开', webOff: '联网关',
+    webHint: '默认关闭。需要最新新闻、竞品、监管或 2026-11-20 快照之后的动态时再开启；搜索词会发送给外部搜索引擎（Bing），结果会标注为外部网页、不是证据库内容。纯证据/审计/离线场景请保持关闭。',
+    webSourcesTitle: '外部网页来源（需自行核实）', webExternal: '外部网页，引用前请核实',
+    webEnabledToast: '联网搜索已开启——结果会标注为外部网页。',
+    webDisabledToast: '联网搜索已关闭——只使用证据库。', prefLanguage: '语言', prefRole: '回答视角', fieldLanguage: '语言',
     settingsTabModel: '模型', settingsTabPrefs: '偏好设置',
     prefsDesc: '界面偏好。切换语言会重新加载工作区；回答视角从下一个问题起生效。',
     prefsFoot: '偏好保存在本地；模型配置在「模型」页。',
@@ -954,6 +991,9 @@ function applyStatic(){
   if ($('prefRoleFieldLabel')) $('prefRoleFieldLabel').textContent = t('prefRole');
   if ($('prefsDesc')) $('prefsDesc').textContent = t('prefsDesc');
   if ($('prefsFoot')) $('prefsFoot').textContent = t('prefsFoot');
+  if ($('webTitle')) $('webTitle').textContent = t('webTitle');
+  if ($('webHint')) $('webHint').textContent = t('webHint');
+  syncWebUI();
   if ($('langHint')) $('langHint').textContent = t('langHint');
   if ($('prefRoleLabel')) $('prefRoleLabel').textContent = t('prefRole');
   if ($('answerSettingsLabel')) $('answerSettingsLabel').textContent = t('answerSettingsLabel');
@@ -1232,6 +1272,23 @@ function evidenceList(list, limit = 3){
   return html + '</div>';
 }
 
+function webList(list, note, error){
+  if ((!list || !list.length) && !error) return '';
+  const cards = (list || []).map(item => {
+    let host = '';
+    try { host = new URL(item.url).hostname; } catch (e) { host = item.url || ''; }
+    return `<a class="web-item" href="${esc(item.url)}" target="_blank" rel="noopener">
+      <span class="web-title">${esc(item.title)}</span>
+      <span class="web-url">${esc(host)}</span>
+      ${item.snippet ? `<span class="web-snip">${esc(item.snippet)}</span>` : ''}
+    </a>`;
+  }).join('');
+  return `<div class="sec"><div class="sec-title">${t('webSourcesTitle')}</div>
+    ${note ? `<p class="reply">${esc(note)}</p>` : ''}
+    ${error ? `<p class="reply">${esc(error)}</p>` : ''}
+    <div class="web-list">${cards}</div></div>`;
+}
+
 function videoList(list){
   if (!list || !list.length) return '';
   const cards = list.slice(0, 8).map(v => `
@@ -1293,6 +1350,7 @@ function renderAnswer(a, restore){
   if (single) html += metricsTable(single);
   if (a.evidence && a.evidence.length) html += evidenceList(a.evidence);
   if (a.videos && a.videos.length) html += videoList(a.videos);
+  if ((a.web && a.web.length) || a.web_error) html += webList(a.web || [], a.web_note, a.web_error);
   if (a.kind !== 'smalltalk') {
     if (a.actions && a.actions.length) html += actionList(a.actions, t('actionsTitle'));
     if (a.risks && a.risks.length) html += actionList(a.risks, t('risksTitle'));
@@ -1348,7 +1406,7 @@ async function send(text){
   try {
     const {res, data} = await fetchJSON('/api/chat', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({session: SESSION, message, lang: LANG, role: currentRole()})
+      body: JSON.stringify({session: SESSION, message, lang: LANG, role: currentRole(), web_search: webEnabled()})
     });
     removeTyping();
     if (!res.ok || data.error) {
@@ -1782,6 +1840,8 @@ $('historySearch').oninput = () => {
   historyTimer = setTimeout(refreshHistory, 250);
 };
 $('langSelect').onchange = () => switchLang($('langSelect').value);
+$('webBtn').onclick = () => setWebEnabled(!webEnabled());
+$('webToggle').onchange = () => setWebEnabled($('webToggle').checked);
 $('roleSelect').onchange = () => {
   localStorage.setItem('openecrs-role', $('roleSelect').value);
   if ($('userRole')) $('userRole').textContent = roleLabel($('roleSelect').value);
@@ -1802,6 +1862,27 @@ document.addEventListener('click', (event) => {
 document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeModelMenu(); closeAbout(); closeProfilePopover(); } });
 window.addEventListener('resize', closeModelMenu);
 window.addEventListener('scroll', closeModelMenu, true);
+
+function webEnabled(){
+  return localStorage.getItem('openecrs-web') === '1';
+}
+
+function syncWebUI(){
+  const on = webEnabled();
+  const btn = $('webBtn');
+  if (btn) {
+    btn.classList.toggle('on', on);
+    btn.title = t('webTitle') + ': ' + (on ? t('webOn') : t('webOff'));
+  }
+  if ($('webBtnLabel')) $('webBtnLabel').textContent = on ? t('webOn') : t('webOff');
+  if ($('webToggle')) $('webToggle').checked = on;
+}
+
+function setWebEnabled(on){
+  localStorage.setItem('openecrs-web', on ? '1' : '0');
+  syncWebUI();
+  showToast(on ? t('webEnabledToast') : t('webDisabledToast'));
+}
 
 function roleLabel(role){
   return ({founder: t('roleFounder'), enterprise: t('roleEnterprise'),

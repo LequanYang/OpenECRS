@@ -335,6 +335,7 @@ class Handler(BaseHTTPRequestHandler):
         role = str(body.get("role") or "founder").lower()
         if role not in ("founder", "enterprise", "investor", "pm"):
             role = "founder"
+        web_search = bool(body.get("web_search"))
         settings = agent_settings.load_settings()
         public = agent_settings.public_settings()
         if not public["ready"]:
@@ -347,7 +348,7 @@ class Handler(BaseHTTPRequestHandler):
         state = _session(session_id)
         try:
             runtime = agent_core.AgentRuntime(settings, get_data())
-            answer = runtime.chat(message, state, lang=lang, role=role)
+            answer = runtime.chat(message, state, lang=lang, role=role, web_search=web_search)
         except agent_providers.LLMRequiredError as exc:
             log_event(route="/api/chat", ok=False, error=str(exc), message=message[:120])
             return self._json(428, {"error": str(exc), "hint": exc.hint, "code": "llm_required"})
@@ -366,6 +367,7 @@ class Handler(BaseHTTPRequestHandler):
         log_event(route="/api/chat", ok=True, lang=lang, session=session_id,
                   kind=answer.get("kind"), engine=(answer.get("engine") or {}).get("label"),
                   latency_ms=(answer.get("engine") or {}).get("latency_ms"),
+                  web_search=web_search, web_results=len(answer.get("web") or []),
                   message=message[:120])
         return self._json(200, answer)
 

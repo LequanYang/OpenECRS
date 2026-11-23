@@ -6,7 +6,7 @@
 An LLM-required agent that turns public AI-tooling signals into auditable, prioritised product opportunities.</p>
 
 <p align="center">
-  <img alt="tests" src="https://img.shields.io/badge/tests-88%20passing-brightgreen">
+  <img alt="tests" src="https://img.shields.io/badge/tests-94%20passing-brightgreen">
   <img alt="LLM required" src="https://img.shields.io/badge/LLM-required-blue">
   <img alt="languages" src="https://img.shields.io/badge/languages-EN%20%7C%20ZH%20%7C%20JA%20%7C%20ES-orange">
   <img alt="python" src="https://img.shields.io/badge/python-3.11%2B-3776AB">
@@ -65,10 +65,11 @@ The LLM is **mandatory**. Without a configured model the agent refuses to chat; 
 - **Grounded by construction** — 12 scenarios, 72 quoted spans, explicit source, year and confidence on every evidence card.
 - **Six working tools** — Decision Wizard, Evidence Explorer, PoC Planner, Portfolio Allocator, Scenario Deep-dive, Saved Workspace — plus external video search.
 - **One-page PDF brief** — advice, scorecard, evidence excerpts, action plan, risks and data limitations.
-- **Multilingual & role-aware** — follows the system language, supports English / 中文 / 日本語 / Español, and answers from founder / enterprise / investor / PM perspectives.
+- **Multilingual & role-aware** — follows the system language, supports English / 中文 / 日本語 / Español, and answers from founder / enterprise / investor / PM perspectives. Language is locked per request, so answers cannot drift back to Chinese after switching.
 - **Persistent conversations** — history survives reloads and server restarts; search, rename and delete from the sidebar.
 - **Clean, collapsible UI** — official OpenECRS logo, responsive sidebar, model switcher, settings split into Model and Preferences.
-- **Runs offline by default** — no build step, no CDN, no telemetry; only the configured LLM endpoint receives requests.
+- **Optional web search** — an independent switch (off by default) for latest news / competitors / regulation. Web results are clearly labelled external, never mixed into the evidence scores.
+- **Runs offline by default** — no build step, no CDN, no telemetry; only the configured LLM endpoint receives requests (plus your search query when web search is on).
 
 ### Design principles
 
@@ -85,9 +86,13 @@ The LLM is **mandatory**. Without a configured model the agent refuses to chat; 
 |---|---|
 | ![Workspace](docs/screenshots/hero-en.png) | ![Deep-dive](docs/screenshots/feature-detail.png) |
 
-| Decision wizard | Sidebar & profile menu |
-|---|---|
+| Decision wizard | Sidebar & profile menu | Web search |
+|---|---|---|
 | ![Wizard](docs/screenshots/feature-wizard.png) | ![Sidebar](docs/screenshots/sidebar-profile.png) |
+
+| Web search (optional) |
+|---|
+| ![Web search](docs/screenshots/web-search.png) |
 
 More screenshots: [`docs/screenshots/`](docs/screenshots/) · sample PDFs: [`docs/examples/`](docs/examples/).
 
@@ -104,6 +109,7 @@ More screenshots: [`docs/screenshots/`](docs/screenshots/) · sample PDFs: [`doc
 | **Scenario Deep-dive** | Opportunity scorecard, yearly trend, source mix, supply signals (repos/stars/papers/Show HN), evidence excerpts. |
 | **Saved Workspace** | Pin scenarios, add notes, and ask the agent to compare the saved shortlist. |
 | **Video search** | External YouTube/Bilibili search links per scenario (clearly labelled as external, not evidence). |
+| **Web search (optional)** | One switch for live news, competitors and regulation; results are Bing web pages, labelled external, and never folded into the evidence scores. |
 | **Chat** | Natural-language questions: ranking, scenario analysis, comparison, evidence requests, PoC planning, video requests, greetings. |
 | **PDF brief** | One-page A4 brief with advice, scorecard, evidence, actions, risks and scope. |
 
@@ -184,7 +190,7 @@ The top bar and the composer both expose a model switcher. Each profile stores i
 
 ## Languages and roles
 
-- **Languages:** System (default), English, 中文, 日本語, Español. “System” reads `navigator.language` (zh/ja/es, otherwise English). The choice is remembered locally and sent with every request.
+- **Languages:** System (default), English, 中文, 日本語, Español. “System” reads `navigator.language` (zh/ja/es, otherwise English). The choice is remembered locally and sent with every request; the prompt forces the requested output language regardless of history or data language.
 - **Roles:** Founder, Enterprise, Investor, PM. The role changes planning priorities and tone (feasibility/MVP vs. compliance/scale vs. market/competition vs. roadmap/metrics), not the underlying numbers.
 - Both live under **Settings → Preferences**; the bottom profile menu has a direct **Answer settings** shortcut.
 
@@ -204,7 +210,7 @@ curl -s -X POST http://127.0.0.1:8765/api/pdf \
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/api/chat` | POST | `{session, message, lang, role}` → answer with advice, reply, metrics, ranking, comparison, evidence, videos, actions, risks, engine, trace |
+| `/api/chat` | POST | `{session, message, lang, role, web_search}` → answer with advice, reply, metrics, ranking, comparison, evidence, videos, actions, risks, engine, trace |
 | `/api/pdf` | POST | `{session, lang}` → `application/pdf` brief |
 | `/api/settings` | GET/POST | read (key masked) / create or update a model profile |
 | `/api/active` | POST | activate a model profile |
@@ -270,6 +276,7 @@ OpenECRS/
 │  ├─ agent_tools.py        # grounded scenario data, ranking, compare, evidence
 │  ├─ agent_features.py     # wizard / PoC / portfolio algorithms + narrative prompts
 │  ├─ agent_insights.py     # evidence index, yearly trends, video links
+│  ├─ agent_web.py          # optional Bing web search (external, opt-in)
 │  ├─ agent_settings.py     # model profiles, language/role-independent keys, readiness
 │  ├─ agent_providers.py    # provider resolution and connection test
 │  ├─ agent_llm.py          # OpenAI-compatible HTTP client
@@ -280,7 +287,7 @@ OpenECRS/
 │  ├─ agent_ui_features.css
 │  ├─ agent_ui_data.py      # rebuild data.json + insights.json
 │  ├─ assets/               # official logo mark / wordmark / favicons
-│  └─ test_*.py             # 88 tests
+│  └─ test_*.py             # 94 tests
 ├─ skills/openecrs_agent.md # human-readable Agent Skill definition
 ├─ outputs/
 │  ├─ agent_ui/data.json    # compact UI dataset
@@ -297,8 +304,8 @@ OpenECRS/
 
 ```bash
 cd code
-python -m unittest test_agent_tools test_agent_core test_agent_http test_agent_features test_agent_insights -v
-# 88 tests
+python -m unittest test_agent_tools test_agent_core test_agent_http test_agent_features test_agent_insights test_agent_web -v
+# 94 tests
 ```
 
 Coverage: grounded tools, planner/responder validation with fake providers (including smalltalk, video routing and roles), LLM-required guard, HTTP settings/test/chat/profile/feature endpoints against a mock OpenAI endpoint, wizard/PoC/portfolio algorithms, insights aggregation, history persistence, and PDF export when a local browser is available.
@@ -309,7 +316,7 @@ Coverage: grounded tools, planner/responder validation with fake providers (incl
 
 - API keys and local model paths are stored locally in `outputs/agent_ui/settings.json` (mode `0600`); they are never committed.
 - Conversation history, saved workspace, generated PDFs and logs stay under `outputs/agent_ui/` and are git-ignored.
-- No telemetry, analytics or CDN requests. The only outbound request is to the LLM endpoint you configure (plus the browser opening external video links when you click them).
+- No telemetry, analytics or CDN requests. The only outbound request is to the LLM endpoint you configure; with **Web search** on, the search query is also sent to Bing, and external links open only when you click them.
 - The UI is served by a local Python HTTP server; do not expose it to untrusted networks without adding authentication.
 
 ---
@@ -327,6 +334,8 @@ Coverage: grounded tools, planner/responder validation with fake providers (incl
 **Why do estimates say “heuristic”?** Effort/cost ranges are planning aids, not measured market data. They are labelled explicitly and should be validated.
 
 **Why are some confidences low?** The evidence review is a rule-based shadow review without human gold labels; low confidence is reported rather than hidden.
+
+**When should I enable Web search?** Only when the answer depends on something newer than the 2026-11-20 snapshot (news, competitors, regulation, funding). Keep it off for evidence-only, audit or offline work; web cards are external and never enter the scores.
 
 ---
 

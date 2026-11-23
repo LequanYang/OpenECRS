@@ -144,6 +144,41 @@ class AgentRuntimeTests(unittest.TestCase):
         tool_names = [call["name"] for call in answer["trace"][1]["calls"]]
         self.assertIn("videos", tool_names)
 
+    def test_web_search_enabled_calls_tool(self):
+        provider = FakeProvider(
+            planner={"intent": "evidence", "scenarios": ["安全合规与隐私"], "focus": "none",
+                     "tools": [{"name": "web_search", "args": {"query": "latest AI regulation"}}],
+                     "reason": "latest news"},
+            responder={"heading": "Web", "advice": "External web results are attached.",
+                       "reply": "Treat them as external.", "actions": [], "risks": []})
+        class FakeWeb:
+            @staticmethod
+            def search(query, max_results=5, lang="en"):
+                return {"query": query, "provider": "bing", "results": [
+                    {"title": "Example", "url": "https://example.com", "snippet": "snippet", "source": "web"}],
+                    "note": "external"}
+        import sys, types
+        fake = types.ModuleType("agent_web"); fake.WebSearchError = RuntimeError; fake.search = FakeWeb.search
+        sys.modules["agent_web"] = fake
+        try:
+            answer = self.runtime(provider).chat("What is the latest AI regulation?", {}, "en", web_search=True)
+        finally:
+            sys.modules.pop("agent_web", None)
+        self.assertEqual(len(answer["web"]), 1)
+        self.assertEqual(answer["web"][0]["url"], "https://example.com")
+        self.assertTrue(answer["web_search_enabled"])
+
+    def test_web_search_disabled_does_not_call(self):
+        provider = FakeProvider(
+            planner={"intent": "evidence", "scenarios": ["安全合规与隐私"], "focus": "none",
+                     "tools": [{"name": "web_search", "args": {"query": "latest AI regulation"}}],
+                     "reason": "latest news"},
+            responder={"heading": "Evidence", "advice": "Enable web search for latest news.",
+                       "reply": "This answer uses the evidence base only.", "actions": [], "risks": []})
+        answer = self.runtime(provider).chat("What is the latest AI regulation?", {}, "en", web_search=False)
+        self.assertEqual(answer["web"], [])
+        self.assertFalse(answer["web_search_enabled"])
+
     def test_session_history_is_kept(self):
         provider = FakeProvider()
         runtime = self.runtime(provider)

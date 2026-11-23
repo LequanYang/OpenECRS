@@ -66,20 +66,24 @@ class AgentRuntime:
 
     # ----------------------------------------------------------------- main
     def chat(self, message: str, session: dict | None = None, lang: str = "en",
-             role: str = "founder") -> dict:
+             role: str = "founder", web_search: bool = False) -> dict:
         session = session if session is not None else {}
-        lang = "zh" if lang == "zh" else "en"
+        lang = lang if lang in ("en", "zh", "ja", "es", "fr", "de") else "en"
         role = role if role in ("founder", "enterprise", "investor", "pm") else "founder"
         provider = self.provider()
         history = session.get("history") or []
         started = time.time()
 
-        plan, plan_meta = self._plan(provider, message, history, lang, role)
-        tool_calls = self._tools_for(plan, message)
+        web_enabled = bool(web_search)
+        plan, plan_meta = self._plan(provider, message, history, lang, role, web_enabled)
+        plan["web_enabled"] = web_enabled
+        tool_calls = self._tools_for(plan, message, web_enabled)
         tool_results = []
         for call in tool_calls:
             if call["name"] == "videos":
                 tool_results.append(self._videos_tool(call["args"], lang))
+            elif call["name"] == "web_search":
+                tool_results.append(self._web_tool(call["args"], lang, message))
             else:
                 tool_results.append(self.data.run_tool(call["name"], call["args"], lang))
         answer_fields, answer_meta = self._respond(provider, message, plan, tool_results, lang, role)
@@ -95,10 +99,10 @@ class AgentRuntime:
 
     # --------------------------------------------------------------- steps
     def _plan(self, provider, message: str, history: list[dict], lang: str,
-              role: str = "founder") -> tuple[dict, dict]:
+              role: str = "founder", web_enabled: bool = False) -> tuple[dict, dict]:
         catalog = self.data.catalog(lang)
         messages = [
-            {"role": "system", "content": prompts.planner_system(catalog, lang, role)},
+            {"role": "system", "content": prompts.planner_system(catalog, lang, role, web_enabled)},
             {"role": "user", "content": prompts.planner_user(message, history, lang)},
         ]
         last_error = ""
@@ -167,7 +171,24 @@ class AgentRuntime:
                 items.append(item)
         return {"videos": items}
 
-    def _tools_for(self, plan: dict, message: str) -> list[dict]:
+    WEB_WORDS = ("latest", "news", "current", "today", "competitor", "regulation", "policy",
+                 "最新", "新闻", "近期", "竞品", "竞争", "监管", "政策", "如今", "现在",
+                 "最新情報", "ニュース", "競合", "規制", "actualidad", "noticias", "competencia", "regulación")
+
+    def _web_tool(self, args: dict, lang: str, message: str) -> dict:
+        try:
+            import agent_web
+        except ImportError:
+            return {"web": [], "web_error": "web search module not available"}
+        query = str(args.get("query") or message).strip()
+        try:
+            data = agent_web.search(query, max_results=5, lang=lang)
+            data["scenario"] = ""
+            return {"web": data.get("results", []), "web_note": data.get("note", ""), "web_query": query}
+        except agent_web.WebSearchError as exc:
+            return {"web": [], "web_error": str(exc), "web_query": query}
+
+    def _tools_for(self, plan: dict, message: str, web_enabled: bool = False) -> list[dict]:
         keys = plan["scenarios"]
         intent = plan["intent"]
         lowered = message.lower()
@@ -206,8 +227,15 @@ class AgentRuntime:
                 calls.append({"name": "compare", "args": {"names": resolved[:3]}})
             elif name == "search":
                 calls.append({"name": "search", "args": {"query": str(args.get("query") or message), "limit": 5}})
+            elif name == "web_search":
+                if web_enabled:
+                    calls.append({"name": "web_search", "args": {"query": str(args.get("query") or message)}})
             else:
                 calls.append({"name": name, "args": {}})
+        # if web is enabled and the question is asking for current information, add a web search
+        if web_enabled and any(word in lowered for word in self.WEB_WORDS) and intent not in ("smalltalk", "video"):
+            if not any(call["name"] == "web_search" for call in calls):
+                calls.append({"name": "web_search", "args": {"query": message}})
         # defaults if the planner did not call anything usable
         if not calls:
             if intent == "ranking":
@@ -281,6 +309,9 @@ class AgentRuntime:
         comparison = None
         evidence = []
         videos = []
+        web = []
+        web_note = ""
+        web_error = ""
         for call, result in zip(tool_calls, tool_results):
             if call["name"] in ("ranking", "catalog"):
                 ranking = self.data.ranking(lang)
@@ -292,6 +323,12 @@ class AgentRuntime:
                 evidence.extend(result["scenario"]["evidence"])
             if isinstance(result.get("videos"), list):
                 videos.extend(result["videos"])
+            if isinstance(result.get("web"), list):
+                web.extend(result["web"])
+            if result.get("web_note"):
+                web_note = result["web_note"]
+            if result.get("web_error"):
+                web_error = result["web_error"]
         if smalltalk:
             ranking, comparison, evidence, videos = [], [], [], []
         if comparison is None and intent == "compare" and len(keys) >= 2:
@@ -311,9 +348,9 @@ class AgentRuntime:
         evidence = unique_evidence[:6]
 
         if intent == "smalltalk":
-            heading = "你好" if lang == "zh" else "Hello"
+            heading = {"zh": "你好", "ja": "こんにちは", "es": "Hola"}.get(lang, "Hello")
         if intent == "video":
-            heading = fields["heading"] or ("视频参考" if lang == "zh" else "Video references")
+            heading = fields["heading"] or {"zh": "视频参考", "ja": "動画リファレンス", "es": "Vídeos relacionados"}.get(lang, "Video references")
         if intent == "ranking":
             top = self.data.ranked[:3]
             for key in top:
@@ -360,6 +397,10 @@ class AgentRuntime:
             "comparison": comparison or [],
             "evidence": evidence,
             "videos": videos[:8],
+            "web": web[:6],
+            "web_note": web_note,
+            "web_error": web_error,
+            "web_search_enabled": bool(plan.get("web_enabled")),
             "actions": fields["actions"],
             "risks": fields["risks"],
             "chips": prompts.chips_for("smalltalk" if intent == "smalltalk" else intent, lang),

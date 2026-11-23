@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 
 INTENTS = ("overview", "ranking", "scenario", "compare", "evidence", "advice", "smalltalk", "video")
-TOOL_NAMES = ("catalog", "ranking", "scenario", "compare", "evidence", "search", "meta", "videos")
+TOOL_NAMES = ("catalog", "ranking", "scenario", "compare", "evidence", "search", "meta", "videos", "web_search")
 
 
 ROLE_HINTS = {
@@ -30,7 +30,24 @@ ROLE_HINTS = {
 
 
 def role_hint(role: str, lang: str = "en") -> str:
-    return ROLE_HINTS.get("zh" if lang == "zh" else "en", {}).get(role or "founder", "")
+    hints = ROLE_HINTS.get("zh" if lang == "zh" else "en", {})
+    return hints.get(role or "founder", "")
+
+
+def output_language_rule(lang: str) -> str:
+    name = _language(lang)
+    return (f"OUTPUT LANGUAGE: every user-facing string (heading, advice, reply, actions, risks, chips) "
+            f"MUST be written in {name}, regardless of the language of the question, previous conversation, "
+            f"scenario names or tool payloads. Quoted evidence spans and source titles may stay verbatim in "
+            f"their original language; everything you write yourself must be {name}. Translate scenario names into "
+            f"{name} (fall back to the English name if no localized name exists).")
+
+
+def output_language_rule_zh(lang: str) -> str:
+    name = _language(lang)
+    return (f"输出语言：heading/advice/reply/actions/risks 等所有面向用户的文字必须使用{name}，"
+            f"不要因为问题、历史对话、场景名或工具数据是中文/英文就改变输出语言；"
+            f"引用的原文证据与来源标题可以保留原语言，其余内容一律用{name}；场景名要翻译成{name}（没有本地化名称时用英文名）。")
 
 
 LANGUAGE_NAMES = {
@@ -70,7 +87,7 @@ def skill_text(lang: str = "en") -> str:
     )
 
 
-def planner_system(catalog: list[dict], lang: str = "en", role: str = "founder") -> str:
+def planner_system(catalog: list[dict], lang: str = "en", role: str = "founder", web_enabled: bool = False) -> str:
     catalog_json = json.dumps(catalog, ensure_ascii=False, indent=1)
     if lang == "zh":
         return (
@@ -82,9 +99,14 @@ def planner_system(catalog: list[dict], lang: str = "en", role: str = "founder")
             '"reason": "一句话规划理由"}\n'
             "规则：问候/自我介绍/感谢/闲聊 → intent=smalltalk 且 tools=[]（不做机会推荐，不要提意图/工具/工作流）；"
             "视频/看视频/推荐视频 → intent=video 且 tools=[{\"name\":\"videos\",\"args\":{}}]（可带场景）；"
+            "如果 web_enabled=true，遇到最新新闻/竞品/监管/快照之后的动态可调用 "
+            "{\"name\":\"web_search\",\"args\":{\"query\":\"搜索词\"}}；web_enabled=false 时不要调用，"
+            "用户要最新信息就在回答中提示到「设置 → 偏好设置」开启联网搜索；"
             "compare 必须给 2 个场景；scenario/advice/evidence 至少给 1 个场景；"
             "最多调用 4 个工具；场景 id 必须来自目录（中文 id）。\n\n"
-            f"【场景目录】\n{catalog_json}\n\n【读者角色】{role_hint(role, lang)}"
+            f"【场景目录】\n{catalog_json}\n\n【读者角色】{role_hint(role, lang)}\n"
+            f"【输出语言】规划 JSON 的字段名保持英文，但 reason 与最终回答必须使用{_language(lang)}。"
+            f"\n【联网开关】web_enabled={str(bool(web_enabled)).lower()}。"
         )
     return (
         f"{skill_text(lang)}\n\n"
@@ -97,17 +119,23 @@ def planner_system(catalog: list[dict], lang: str = "en", role: str = "founder")
         "Rules: greetings / self-introduction / thanks / chit-chat -> intent=smalltalk and tools=[] "
         "(do NOT pitch a scenario and never mention intent/tools/workflow); "
         "video / watch / recommend videos -> intent=video and tools=[{\"name\":\"videos\",\"args\":{}}] "
-        "(scenario optional); compare needs exactly two scenarios; scenario/advice/evidence need at "
+        "(scenario optional); if web_enabled=true you may call {\"name\":\"web_search\",\"args\":{\"query\":\"...\"}} "
+        "for latest news / competitors / regulation / anything after the snapshot; when web_enabled=false do not call it "
+        "and instead tell the user to enable Web search in Settings → Preferences; compare needs exactly two scenarios; scenario/advice/evidence need at "
         "least one scenario; call at most four tools; scenario ids must come from the catalog.\n\n"
-        f"[Scenario catalog]\n{catalog_json}\n\n[Audience] {role_hint(role, lang)}"
+        f"[Scenario catalog]\n{catalog_json}\n\n[Audience] {role_hint(role, lang)}\n"
+        f"[Output language] JSON keys stay English, but the final answer must be written in {_language(lang)}."
+        f"\n[Web search] web_enabled={str(bool(web_enabled)).lower()}."
     )
 
 
 def planner_user(question: str, history: list[dict], lang: str = "en") -> str:
     transcript = "\n".join(f"{m.get('role')}: {m.get('content')}" for m in history[-6:]) or "(none)"
     if lang == "zh":
-        return f"最近对话：\n{transcript}\n\n当前问题：{question}\n用{_language(lang)}回答。"
-    return f"Recent conversation:\n{transcript}\n\nCurrent question: {question}\nAnswer in {_language(lang)}."
+        return (f"最近对话：\n{transcript}\n\n当前问题：{question}\n"
+                f"无论历史对话使用什么语言，本次输出只能使用{_language(lang)}。")
+    return (f"Recent conversation:\n{transcript}\n\nCurrent question: {question}\n"
+            f"Regardless of the language used in the conversation above, answer ONLY in {_language(lang)}.")
 
 
 def responder_system(lang: str = "en", role: str = "founder") -> str:
@@ -120,9 +148,14 @@ def responder_system(lang: str = "en", role: str = "founder") -> str:
             "如果 intent 是 smalltalk：像产品向导一样自然回应。advice 用一句友好问候；reply 用 2-3 句说明你能帮什么"
             "（选方向、做对比、查证据、出 PoC、看视频），并给 2-3 个可以直接问的例子。"
             "严禁出现“意图/smalltalk/工具/工作流/未调用/评分公式/AHP/权重”等内部术语；不要推荐具体场景；actions/risks 为空。"
+            "如果工具结果包含 web：这些是外部网页，不是证据库；请单独标注“外部网页（需自行核实）”并给出链接，"
+            "不得把网页数字混入评分或排名；"
+            "场景名称必须使用工具结果里的本地化名称，不要直接输出中文场景 id；如果只有 id，就翻译成目标语言或使用英文名；"
+            "如果 plan.web_enabled=false 且用户问的是最新/新闻/竞品/监管，明确提示用户到「设置 → 偏好设置」开启联网搜索；"
             "如果 intent 是 video：直接展示外部视频链接（非证据库），邀请用户指定场景以获得更精准结果；"
             "不要抱怨缺少评分或证据。"
-            f"读者角色：{role_hint(role, lang)} 不要输出 Markdown、代码块或额外文字；数字必须与工具结果一致；用简体中文。"
+            f"{output_language_rule_zh(lang)}\n"
+            f"读者角色：{role_hint(role, lang)} 不要输出 Markdown、代码块或额外文字；数字必须与工具结果一致。"
         )
     return (
         f"{skill_text(lang)}\n\n"
@@ -134,8 +167,14 @@ def responder_system(lang: str = "en", role: str = "founder") -> str:
         "`reply` is 2-3 sentences on what you can help with (choose a direction, compare scenarios, verify "
         "evidence, draft a PoC, watch videos) plus 2-3 example questions. Never mention intent, tools, workflow, "
         "classification, or scoring formulas; do not pitch a specific scenario; actions/risks stay empty. "
+        "If tool results contain web: label them as external web pages (verify before use), cite URLs, and never "
+        "mix web numbers into scores or rankings. Scenario names must use the localized names from tool results; "
+        "never emit raw Chinese scenario ids in non-Chinese answers — translate them or use the English name. "
+        "If plan.web_enabled is false and the question needs latest news/competitors/regulation, explicitly tell the "
+        "user to enable Web search in Settings → Preferences. "
         "If intent is video: present the external video links directly (not evidence) and invite the user to "
         "pick a scenario for a sharper search; do not complain about missing scores or evidence. "
+        f"{output_language_rule(lang)} "
         "No Markdown, no code fences, no extra text; numbers must match the tool results."
     )
 
