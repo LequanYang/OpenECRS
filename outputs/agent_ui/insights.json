@@ -1,0 +1,561 @@
+{
+ "generated_at": "2026-11-23T07:16:41+00:00",
+ "scenarios": {
+  "其他": {
+   "trend": {
+    "years": [
+     2010,
+     2011,
+     2012,
+     2013,
+     2014,
+     2015,
+     2016,
+     2017,
+     2018,
+     2019,
+     2020,
+     2021,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     21,
+     21,
+     42,
+     54,
+     53,
+     55,
+     69,
+     76,
+     88,
+     85,
+     84,
+     78,
+     138,
+     1156,
+     948,
+     686,
+     8180
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "GitHub",
+     "count": 5817
+    },
+    {
+     "source": "HackerNews",
+     "count": 3304
+    },
+    {
+     "source": "StackOverflow",
+     "count": 2713
+    }
+   ]
+  },
+  "内容创作与营销": {
+   "trend": {
+    "years": [
+     2011,
+     2012,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     1,
+     1,
+     7,
+     16,
+     5,
+     12,
+     105
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "GitHub",
+     "count": 95
+    },
+    {
+     "source": "HackerNews",
+     "count": 33
+    },
+    {
+     "source": "StackOverflow",
+     "count": 19
+    }
+   ]
+  },
+  "办公协作与会议效率": {
+   "trend": {
+    "years": [
+     2013,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     1,
+     1,
+     7,
+     4,
+     5,
+     54
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "GitHub",
+     "count": 46
+    },
+    {
+     "source": "HackerNews",
+     "count": 17
+    },
+    {
+     "source": "StackOverflow",
+     "count": 9
+    }
+   ]
+  },
+  "垂直行业应用": {
+   "trend": {
+    "years": [
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     6,
+     7,
+     8,
+     60
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "GitHub",
+     "count": 40
+    },
+    {
+     "source": "HackerNews",
+     "count": 31
+    },
+    {
+     "source": "StackOverflow",
+     "count": 10
+    }
+   ]
+  },
+  "多智能体与任务编排": {
+   "trend": {
+    "years": [
+     2014,
+     2016,
+     2017,
+     2018,
+     2019,
+     2020,
+     2021,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     2,
+     1,
+     3,
+     1,
+     2,
+     1,
+     1,
+     1,
+     10,
+     42,
+     95,
+     707
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "GitHub",
+     "count": 505
+    },
+    {
+     "source": "HackerNews",
+     "count": 249
+    },
+    {
+     "source": "StackOverflow",
+     "count": 112
+    }
+   ]
+  },
+  "安全合规与隐私": {
+   "trend": {
+    "years": [
+     2018,
+     2019,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     1,
+     1,
+     1,
+     26,
+     13,
+     30,
+     189
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "HackerNews",
+     "count": 127
+    },
+    {
+     "source": "GitHub",
+     "count": 119
+    },
+    {
+     "source": "StackOverflow",
+     "count": 15
+    }
+   ]
+  },
+  "客户服务与智能客服": {
+   "trend": {
+    "years": [
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     1,
+     3,
+     8,
+     20
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "GitHub",
+     "count": 18
+    },
+    {
+     "source": "HackerNews",
+     "count": 11
+    },
+    {
+     "source": "StackOverflow",
+     "count": 3
+    }
+   ]
+  },
+  "教育学习与知识辅导": {
+   "trend": {
+    "years": [
+     2014,
+     2015,
+     2019,
+     2020,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     1,
+     1,
+     1,
+     1,
+     2,
+     6,
+     2,
+     4,
+     104
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "GitHub",
+     "count": 85
+    },
+    {
+     "source": "HackerNews",
+     "count": 24
+    },
+    {
+     "source": "StackOverflow",
+     "count": 13
+    }
+   ]
+  },
+  "数据分析与商业洞察": {
+   "trend": {
+    "years": [
+     2010,
+     2011,
+     2012,
+     2013,
+     2014,
+     2015,
+     2016,
+     2017,
+     2018,
+     2019,
+     2020,
+     2021,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     1,
+     1,
+     2,
+     2,
+     3,
+     5,
+     4,
+     5,
+     4,
+     5,
+     4,
+     2,
+     5,
+     41,
+     37,
+     10,
+     97
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "StackOverflow",
+     "count": 127
+    },
+    {
+     "source": "GitHub",
+     "count": 91
+    },
+    {
+     "source": "HackerNews",
+     "count": 10
+    }
+   ]
+  },
+  "浏览器与工作流自动化": {
+   "trend": {
+    "years": [
+     2011,
+     2012,
+     2016,
+     2017,
+     2018,
+     2019,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     1,
+     1,
+     2,
+     2,
+     5,
+     2,
+     1,
+     14,
+     14,
+     18,
+     87
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "GitHub",
+     "count": 71
+    },
+    {
+     "source": "HackerNews",
+     "count": 49
+    },
+    {
+     "source": "StackOverflow",
+     "count": 27
+    }
+   ]
+  },
+  "知识管理与文档问答": {
+   "trend": {
+    "years": [
+     2011,
+     2013,
+     2014,
+     2015,
+     2016,
+     2017,
+     2018,
+     2019,
+     2020,
+     2021,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     1,
+     4,
+     1,
+     4,
+     3,
+     1,
+     4,
+     6,
+     4,
+     6,
+     4,
+     88,
+     171,
+     52,
+     495
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "GitHub",
+     "count": 461
+    },
+    {
+     "source": "StackOverflow",
+     "count": 309
+    },
+    {
+     "source": "HackerNews",
+     "count": 74
+    }
+   ]
+  },
+  "编程与代码智能": {
+   "trend": {
+    "years": [
+     2013,
+     2015,
+     2017,
+     2018,
+     2020,
+     2021,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     3,
+     3,
+     2,
+     1,
+     2,
+     3,
+     10,
+     46,
+     31,
+     43,
+     516
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "GitHub",
+     "count": 362
+    },
+    {
+     "source": "HackerNews",
+     "count": 222
+    },
+    {
+     "source": "StackOverflow",
+     "count": 76
+    }
+   ]
+  },
+  "语音与实时交互": {
+   "trend": {
+    "years": [
+     2010,
+     2011,
+     2013,
+     2015,
+     2016,
+     2017,
+     2018,
+     2019,
+     2020,
+     2021,
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "counts": [
+     1,
+     2,
+     1,
+     2,
+     1,
+     1,
+     3,
+     2,
+     3,
+     3,
+     10,
+     38,
+     29,
+     28,
+     107
+    ]
+   },
+   "source_mix": [
+    {
+     "source": "StackOverflow",
+     "count": 87
+    },
+    {
+     "source": "GitHub",
+     "count": 75
+    },
+    {
+     "source": "HackerNews",
+     "count": 69
+    }
+   ]
+  }
+ }
+}

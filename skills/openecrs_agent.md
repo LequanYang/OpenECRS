@@ -66,6 +66,12 @@ Scenario ids are the canonical Chinese names (e.g. `安全合规与隐私`); use
 The runtime then attaches the grounded metrics/ranking/evidence and exposes the plan and tool calls in the
 UI's **Agent trace**.
 
+## Intents
+
+`overview`, `ranking`, `scenario`, `compare`, `evidence`, `advice`, and `smalltalk`.
+Greetings, thanks, self-introduction and chit-chat must be `smalltalk` with **no tools** and no scenario pitch:
+the model replies conversationally and points the user to what it can do.
+
 ## Output rules
 
 - One-sentence advice: ≤ 60 Chinese characters or ≤ 45 English words, must include key numbers and a concrete action.
@@ -82,11 +88,35 @@ UI's **Agent trace**.
 - Do not give investment, legal or medical advice; frame recommendations as hypotheses to validate.
 - If the model cannot produce valid JSON twice, the runtime returns an error instead of falling back to templates.
 
+## Languages and videos
+
+- Supported UI languages: English, 中文, 日本語, Español; the app follows the system language by default and the sidebar selector overrides it. Answers and prompts follow the selected language (`lang`).
+- Greetings must be answered naturally (warm product-guide tone, example questions, no internal jargon, no forced scenario).
+- A `videos` tool returns external YouTube/Bilibili search links per scenario; chat responses must present them as external references, never as evidence.
+
+## Product surfaces (outside the chat loop)
+
+The same evidence core powers deterministic product panels:
+
+- **Decision wizard** — constraints → deterministic shortlist (`agent_features.wizard`), LLM only narrates.
+- **Evidence explorer** — filter the 72 quoted spans by scenario/source/year/confidence/positive-negative (`agent_insights`).
+- **PoC plan** — 2/4/8-week milestones, roles, metrics and a compliance checklist; effort/cost are labelled heuristic.
+- **Portfolio** — team/budget allocation across scenarios, with explicit exclusions.
+- **Scenario deep-dive** — yearly trend, source mix and supply signals from the reconciliation tables.
+- **Videos** — external search links only; never treated as evidence.
+
+Chat answers can also be requested from four perspectives (`founder`, `enterprise`, `investor`, `pm`); the role changes planning priorities and wording, not the numbers.
+
 ## Configuration
 
 - **API backend**: any OpenAI-compatible endpoint (`base_url`, `model`, `api_key`), e.g. DeepSeek, OpenAI, Moonshot, DashScope compatible mode, local Ollama.
 - **Local backend**: Qwen2.5-3B-Instruct + a PEFT LoRA adapter (`outputs/lora/adapter_pilot`), requiring `requirements-lora.txt` and the base weights.
 - Settings are stored locally in `outputs/agent_ui/settings.json` (0600); env vars `DEEPSEEK_API_KEY` / `OPENAI_API_KEY` / `LLM_API_KEY` are also supported.
+- Settings v3 keeps a list of **model profiles** with one active profile; the top-bar switcher switches API/local models in one click and each profile keeps its own key/paths.
+
+## 产品面板
+
+同一套证据核心还驱动确定性工具面板：决策向导（约束 → 短名单）、证据浏览器（72 条原文筛选）、PoC 计划（2/4/8 周）、组合预算、场景深潜（趋势/来源/供给）、外部视频搜索。面板数字均由确定性函数计算，LLM 只负责叙述；人力/成本标注为启发式。
 
 ## 中文摘要
 

@@ -4,7 +4,7 @@
 
 English · **[中文版](README.zh-CN.md)**
 
-![OpenECRS welcome screen](docs/screenshots/welcome-en.png)
+![OpenECRS welcome screen](docs/screenshots/hero-en.png)
 
 OpenECRS is a **complete agent system**: the LLM is mandatory. The model plans every answer, calls deterministic tools over a pre-built evidence base of 12 AI application scenarios, and writes a **one-sentence recommendation + detailed data + evidence quotes + action plan**, exportable as a PDF brief. Numbers and evidence always come from the tools, never from the model — and if no LLM is configured, the agent refuses to chat.
 
@@ -13,9 +13,30 @@ OpenECRS is a **complete agent system**: the LLM is mandatory. The model plans e
 - **LLM required** — no rule-template answers. API (OpenAI-compatible) or a local fine-tuned Qwen2.5-3B + LoRA adapter.
 - **Real agent loop** — `plan → tools → answer`, two model calls per turn; the UI shows an **Agent trace** (intent, tool calls, model latency).
 - **Grounded tools** — ranking, scenario metrics, comparisons, evidence search; every claim is traceable to a quoted span.
-- **Bilingual** — English default, 中文 toggle; README / answers / PDF all follow the active language.
+- **Natural small talk** — greetings get a short, friendly product-guide reply with example questions (no forced scenario pitch, no internal jargon); data questions still go through grounded tools.
+- **Videos in chat** — ask “recommend videos” and the agent returns YouTube/Bilibili search cards per scenario (explicitly external, not evidence).
+- **Multilingual** — English, 中文, 日本語 and Español; the interface follows your system language by default and switches from the sidebar selector. Chat answers follow the selected language.
 - **PDF brief** — one-sentence advice, detailed data, evidence excerpts, action plan, scope & limitations; rendered locally.
 - **Programmatic API** — `/api/chat`, `/api/pdf`, `/api/settings`, `/api/test`, `/api/health`.
+- **Persistent conversations** — chats are saved to `outputs/agent_ui/sessions.json`, listed under **Recent chats**, and restored after a page reload or a server restart.
+
+## What you can do
+
+| Tool | What it gives you |
+|---|---|
+| **Decision wizard** | 5 constraints (role, goal, team, budget, horizon, risk) → a 3-scenario shortlist with deterministic scores, reasons and watch-outs; optional LLM narrative. |
+| **Evidence explorer** | Filter the 72 quoted spans by scenario, source, year, confidence and positive/negative evidence; read the original span and open the source. |
+| **PoC plan** | 2 / 4 / 8-week milestone plan with deliverables, exit criteria, roles, success metrics, data/compliance checklist and heuristic effort/cost. |
+| **Portfolio** | Given a team, timeline and budget, what to build, what to validate, what to drop. |
+| **Scenario deep-dive** | Opportunity metrics, yearly trend, source mix, supply signals (repos/stars/papers/Show HN) and evidence excerpts. |
+| **Saved workspace** | Pin scenarios and notes, then ask the agent to compare the saved shortlist. |
+| **Videos** | External YouTube/Bilibili search links per scenario (clearly marked as external, not evidence). |
+
+Answers and panels are bilingual; estimates are labelled **heuristic** and never presented as market facts.
+
+![Scenario deep-dive](docs/screenshots/feature-detail.png)
+
+![Decision wizard](docs/screenshots/feature-wizard.png)
 
 ## Architecture
 
@@ -55,6 +76,19 @@ On first launch the UI asks for an LLM. Open **Settings** and pick one of:
 | Local Ollama | `http://127.0.0.1:11434/v1` | local model name, any key |
 
 Paste the key, click **Test connection**, then **Save**. Keys live in `outputs/agent_ui/settings.json` (0600) and are only sent to the endpoint you configure; `DEEPSEEK_API_KEY` / `OPENAI_API_KEY` / `LLM_API_KEY` and `LLM_BASE_URL` / `LLM_MODEL` are supported too.
+
+### Model switcher
+
+The chip in the top bar shows the active model profile and opens a one-click switcher.
+It lists every saved profile (API keys and local adapters), marks the current one, and offers:
+
+- **+ Add model** — save a new API or local profile (each keeps its own key/paths).
+- **Settings** — edit or delete the active profile.
+
+Switching applies immediately to the next answer; profiles are stored in `outputs/agent_ui/settings.json` (keys masked in the API).
+If the selected profile is not ready, the UI shows an onboarding banner instead of silently falling back.
+
+![Model switcher](docs/screenshots/model-switcher.png)
 
 ### Local fine-tuned backend
 
@@ -125,11 +159,22 @@ OpenECRS/
 └─ README.md / README.zh-CN.md
 ```
 
+## Languages
+
+The bottom profile card opens a compact, borderless popover with **Answer settings**, **Settings**, **Guide** and **About data**. Language and answer role live in **Settings → Preferences** (Answer settings jumps straight there), keeping the model form clean. The language selector offers **System** (default), English, 中文, 日本語 and Español. “System” resolves `navigator.language` (zh/ja/es, otherwise English); the choice is remembered locally. The selected language is sent with every chat/feature request, so answers, prompts and labels follow it. PDF templates currently fall back to English for ja/es.
+
+## Roles
+
+The **Answer as** selector in the sidebar changes the planning and writing perspective:
+`founder` (feasibility, MVP, 2–4-week validation), `enterprise` (compliance, org coordination, decision memo),
+`investor` (market, competition, evidence strength, downside) and `PM` (user pain, roadmap, metrics, trade-offs).
+The role is sent with every chat request and reflected in the answer.
+
 ## Tests
 
 ```bash
 cd code
-python -m unittest test_agent_tools test_agent_core test_agent_http -v   # 18 tests
+python -m unittest test_agent_tools test_agent_core test_agent_http test_agent_features test_agent_insights -v   # 88 tests
 ```
 
 Covers grounded tools, planner/responder validation with a fake provider, the LLM-required guard, HTTP settings/test/chat endpoints against a mock OpenAI endpoint, and PDF export when a local browser is available.
@@ -146,3 +191,6 @@ Covers grounded tools, planner/responder validation with a fake provider, the LL
 ## License and attribution
 
 Code in this repository is released for research and evaluation use. Quoted third-party data snippets remain the property of their original authors.
+## Desktop build note
+
+This local copy also ships the pilot LoRA adapter under `outputs/lora/adapter_pilot/` for the local fine-tuned backend (not included in the GitHub repository; the Qwen2.5-3B-Instruct base weights are still required).
