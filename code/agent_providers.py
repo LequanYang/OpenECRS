@@ -52,17 +52,21 @@ class LocalProvider(agent_local.LocalProvider):
 
 def provider_info(settings: dict | None = None) -> dict:
     settings = settings or agent_settings.load_settings()
-    if settings["backend"] == "api":
+    profile = agent_settings.active_profile(settings)
+    backend = profile["backend"]
+    if backend == "api":
         api = agent_settings.resolve_api(settings)
-        return {"backend": "api", "model": api["model"], "label": f"API · {api['model']}"}
+        return {"backend": "api", "model": api["model"],
+                "label": profile.get("name") or f"API · {api['model']}"}
     local = agent_settings.resolve_local(settings)
     name = local["adapter"].rstrip("/").split("/")[-1] or "local"
-    return {"backend": "local", "model": name, "label": f"Local · {name}"}
+    return {"backend": "local", "model": name,
+            "label": profile.get("name") or f"Local · {name}"}
 
 
 def get_provider(settings: dict | None = None):
     settings = settings or agent_settings.load_settings()
-    if settings["backend"] == "api":
+    if agent_settings.active_profile(settings)["backend"] == "api":
         api = agent_settings.resolve_api(settings)
         if not api["api_key"]:
             raise LLMRequiredError(
@@ -83,7 +87,7 @@ def get_provider(settings: dict | None = None):
 def test_provider(settings: dict | None = None) -> dict:
     settings = settings or agent_settings.load_settings()
     started = time.time()
-    if settings["backend"] == "api":
+    if agent_settings.active_profile(settings)["backend"] == "api":
         api = agent_settings.resolve_api(settings)
         if not api["api_key"]:
             return {"ok": False, "backend": "api", "model": api["model"], "latency_ms": 0,

@@ -11,14 +11,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import agent_core  # noqa: E402
 import agent_providers  # noqa: E402
-from agent_settings import DEFAULT_SETTINGS  # noqa: E402
+from agent_settings import DEFAULT_API, DEFAULT_LOCAL  # noqa: E402
 from agent_tools import ScenarioData  # noqa: E402
 
 
 def settings_with_key() -> dict:
-    settings = json.loads(json.dumps(DEFAULT_SETTINGS))
-    settings["api"]["api_key"] = "test-key"
-    return settings
+    api = json.loads(json.dumps(DEFAULT_API))
+    api["api_key"] = "test-key"
+    return {"version": 3, "active": "api-default", "profiles": [
+        {"id": "api-default", "name": "test-api", "backend": "api",
+         "api": api, "local": json.loads(json.dumps(DEFAULT_LOCAL))},
+    ]}
 
 
 class FakeProvider:
@@ -99,10 +102,47 @@ class AgentRuntimeTests(unittest.TestCase):
 
     def test_llm_is_required(self):
         settings = settings_with_key()
-        settings["api"]["api_key"] = ""
+        settings["profiles"][0]["api"]["api_key"] = ""
         runtime = agent_core.AgentRuntime(settings, ScenarioData())
         with self.assertRaises(agent_providers.LLMRequiredError):
             runtime.chat("hello", {}, "en")
+
+    def test_role_is_forwarded_to_prompts(self):
+        provider = FakeProvider()
+        answer = self.runtime(provider).chat("Which scenario should we prioritise?", {}, "en", role="investor")
+        self.assertEqual(answer["role"], "investor")
+        planner_system = provider.calls[0][0]["content"]
+        self.assertIn("investor", planner_system.lower())
+
+    def test_smalltalk_does_not_force_a_recommendation(self):
+        provider = FakeProvider(
+            planner={"intent": "smalltalk", "scenarios": [], "focus": "none", "tools": [], "reason": "greeting"},
+            responder={"heading": "Hello", "advice": "Hi, I'm OpenECRS, an evidence-driven opportunity agent.",
+                       "reply": "Ask me to rank scenarios or show evidence.", "actions": [], "risks": []},
+        )
+        answer = self.runtime(provider).chat("Hello", {}, "en")
+        self.assertEqual(answer["kind"], "smalltalk")
+        self.assertEqual(answer["metrics"], {})
+        self.assertEqual(answer["ranking"], [])
+        self.assertEqual(answer["evidence"], [])
+        self.assertEqual(answer["advice"], "Hi, I'm OpenECRS, an evidence-driven opportunity agent.")
+        self.assertTrue(answer["chips"])
+        self.assertEqual(answer["trace"], [])
+        self.assertEqual(answer["heading"], "Hello")
+        self.assertEqual(len(provider.calls), 2)
+
+    def test_video_request_is_routed_to_videos(self):
+        provider = FakeProvider(planner={"intent": "smalltalk", "scenarios": [], "focus": "none",
+                                         "tools": [], "reason": "greeting"},
+                                responder={"heading": "Videos", "advice": "Here are external videos.",
+                                           "reply": "Pick a scenario for sharper results.",
+                                           "actions": [], "risks": []})
+        answer = self.runtime(provider).chat("recommend videos", {}, "en")
+        self.assertEqual(answer["kind"], "video")
+        self.assertGreater(len(answer["videos"]), 0)
+        self.assertTrue(all(item["platform"] in ("youtube", "bilibili") for item in answer["videos"]))
+        tool_names = [call["name"] for call in answer["trace"][1]["calls"]]
+        self.assertIn("videos", tool_names)
 
     def test_session_history_is_kept(self):
         provider = FakeProvider()

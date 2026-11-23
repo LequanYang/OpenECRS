@@ -65,20 +65,27 @@ class AgentRuntime:
         return self._provider
 
     # ----------------------------------------------------------------- main
-    def chat(self, message: str, session: dict | None = None, lang: str = "en") -> dict:
+    def chat(self, message: str, session: dict | None = None, lang: str = "en",
+             role: str = "founder") -> dict:
         session = session if session is not None else {}
         lang = "zh" if lang == "zh" else "en"
+        role = role if role in ("founder", "enterprise", "investor", "pm") else "founder"
         provider = self.provider()
         history = session.get("history") or []
         started = time.time()
 
-        plan, plan_meta = self._plan(provider, message, history, lang)
+        plan, plan_meta = self._plan(provider, message, history, lang, role)
         tool_calls = self._tools_for(plan, message)
-        tool_results = [self.data.run_tool(call["name"], call["args"], lang) for call in tool_calls]
-        answer_fields, answer_meta = self._respond(provider, message, plan, tool_results, lang)
+        tool_results = []
+        for call in tool_calls:
+            if call["name"] == "videos":
+                tool_results.append(self._videos_tool(call["args"], lang))
+            else:
+                tool_results.append(self.data.run_tool(call["name"], call["args"], lang))
+        answer_fields, answer_meta = self._respond(provider, message, plan, tool_results, lang, role)
 
         answer = self._assemble(message, lang, plan, tool_calls, tool_results, answer_fields,
-                                plan_meta, answer_meta, started)
+                                plan_meta, answer_meta, started, role)
         history.extend([{"role": "user", "content": message},
                         {"role": "assistant", "content": answer.get("advice", "")}])
         session["history"] = history[-12:]
@@ -87,10 +94,11 @@ class AgentRuntime:
         return answer
 
     # --------------------------------------------------------------- steps
-    def _plan(self, provider, message: str, history: list[dict], lang: str) -> tuple[dict, dict]:
+    def _plan(self, provider, message: str, history: list[dict], lang: str,
+              role: str = "founder") -> tuple[dict, dict]:
         catalog = self.data.catalog(lang)
         messages = [
-            {"role": "system", "content": prompts.planner_system(catalog, lang)},
+            {"role": "system", "content": prompts.planner_system(catalog, lang, role)},
             {"role": "user", "content": prompts.planner_user(message, history, lang)},
         ]
         last_error = ""
@@ -114,7 +122,9 @@ class AgentRuntime:
             return None
         intent = str(parsed.get("intent") or "").strip().lower()
         synonyms = {"comparison": "compare", "evidence_only": "evidence", "scenario_analysis": "scenario",
-                    "recommendation": "advice", "action": "advice", "overview": "overview"}
+                    "recommendation": "advice", "action": "advice", "overview": "overview",
+                    "greeting": "smalltalk", "chat": "smalltalk", "chitchat": "smalltalk",
+                    "small_talk": "smalltalk", "smalltalk": "smalltalk"}
         intent = synonyms.get(intent, intent)
         if intent not in INTENTS:
             intent = "overview"
@@ -137,9 +147,38 @@ class AgentRuntime:
         return {"intent": intent, "scenarios": keys, "focus": focus, "tools": tools,
                 "reason": str(parsed.get("reason") or "")[:300]}
 
+    VIDEO_WORDS = ("视频", "看视频", "推荐视频", "video", "videos", "watch", "youtube", "bilibili", "動画", "ビデオ", "vídeo")
+
+    def _videos_tool(self, args: dict, lang: str) -> dict:
+        try:
+            import agent_insights
+        except ImportError:
+            return {"videos": [], "error": "insights module not available"}
+        scenario = self.data.resolve(str(args.get("name") or args.get("scenario") or ""))
+        if scenario:
+            items = agent_insights.video_links(scenario, self.data, lang)
+            for item in items:
+                item["scenario"] = self.data.display(scenario, lang)
+            return {"videos": items, "scenario": self.data.display(scenario, lang)}
+        items = []
+        for ranked in self.data.ranked[:3]:
+            for item in agent_insights.video_links(ranked["name"], self.data, lang):
+                item["scenario"] = self.data.display(ranked["name"], lang)
+                items.append(item)
+        return {"videos": items}
+
     def _tools_for(self, plan: dict, message: str) -> list[dict]:
         keys = plan["scenarios"]
         intent = plan["intent"]
+        lowered = message.lower()
+        wants_video = any(word in lowered for word in self.VIDEO_WORDS)
+        if wants_video and intent in ("smalltalk", "overview", "advice", "evidence"):
+            intent = "video"
+            plan["intent"] = "video"
+        if intent == "video":
+            return [{"name": "videos", "args": {"scenario": keys[0] if keys else ""}}]
+        if intent == "smalltalk":
+            return []
         if intent in ("scenario", "advice") and not keys:
             keys = [self.data.ranked[0]["name"]]
         if intent == "compare" and len(keys) < 2:
@@ -193,9 +232,10 @@ class AgentRuntime:
                 unique.append(call)
         return unique[:4]
 
-    def _respond(self, provider, message: str, plan: dict, tool_results: list[dict], lang: str):
+    def _respond(self, provider, message: str, plan: dict, tool_results: list[dict], lang: str,
+                 role: str = "founder"):
         messages = [
-            {"role": "system", "content": prompts.responder_system(lang)},
+            {"role": "system", "content": prompts.responder_system(lang, role)},
             {"role": "user", "content": prompts.responder_user(message, plan, tool_results, lang)},
         ]
         last_error = ""
@@ -222,7 +262,7 @@ class AgentRuntime:
 
     # ------------------------------------------------------------- assembly
     def _assemble(self, message, lang, plan, tool_calls, tool_results, fields,
-                  plan_meta, answer_meta, started) -> dict:
+                  plan_meta, answer_meta, started, role="founder") -> dict:
         intent = plan["intent"]
         keys = list(plan["scenarios"])
         if intent == "compare" and len(keys) < 2:
@@ -231,14 +271,16 @@ class AgentRuntime:
             keys = [self.data.ranked[0]["name"]]
         names = [self.data.display(k, lang) for k in keys]
 
-        metrics = {}
-        for key in keys[:3]:
+        smalltalk = intent == "smalltalk"
+        metrics = {} if smalltalk else {}
+        for key in ([] if smalltalk else keys[:3]):
             scenario = self.data.scenario(key, lang)
             metrics[scenario["name"]] = scenario
 
         ranking = None
         comparison = None
         evidence = []
+        videos = []
         for call, result in zip(tool_calls, tool_results):
             if call["name"] in ("ranking", "catalog"):
                 ranking = self.data.ranking(lang)
@@ -248,6 +290,10 @@ class AgentRuntime:
                 evidence.extend(result["evidence"])
             if isinstance(result.get("scenario"), dict) and result["scenario"].get("evidence"):
                 evidence.extend(result["scenario"]["evidence"])
+            if isinstance(result.get("videos"), list):
+                videos.extend(result["videos"])
+        if smalltalk:
+            ranking, comparison, evidence, videos = [], [], [], []
         if comparison is None and intent == "compare" and len(keys) >= 2:
             comparison = self.data.compare(keys[:2], lang)["rows"]
         if ranking is None and intent in ("ranking", "overview"):
@@ -264,6 +310,10 @@ class AgentRuntime:
                 unique_evidence.append(item)
         evidence = unique_evidence[:6]
 
+        if intent == "smalltalk":
+            heading = "你好" if lang == "zh" else "Hello"
+        if intent == "video":
+            heading = fields["heading"] or ("视频参考" if lang == "zh" else "Video references")
         if intent == "ranking":
             top = self.data.ranked[:3]
             for key in top:
@@ -275,7 +325,8 @@ class AgentRuntime:
             for key in self.data.ranked[:3]:
                 metrics.setdefault(self.data.display(key["name"], lang), self.data.scenario(key["name"], lang))
 
-        heading = fields["heading"] or self._default_heading(intent, names, lang)
+        if intent not in ("smalltalk", "video"):
+            heading = fields["heading"] or self._default_heading(intent, names, lang)
         engine = {
             "backend": self.info["backend"],
             "model": answer_meta.get("model") or plan_meta.get("model") or self.info["model"],
@@ -298,6 +349,7 @@ class AgentRuntime:
         return {
             "kind": intent,
             "lang": lang,
+            "role": role,
             "question": message,
             "heading": heading,
             "advice": fields["advice"],
@@ -307,11 +359,12 @@ class AgentRuntime:
             "ranking": ranking or [],
             "comparison": comparison or [],
             "evidence": evidence,
+            "videos": videos[:8],
             "actions": fields["actions"],
             "risks": fields["risks"],
-            "chips": prompts.chips_for(intent, lang),
+            "chips": prompts.chips_for("smalltalk" if intent == "smalltalk" else intent, lang),
             "engine": engine,
-            "trace": trace,
+            "trace": [] if smalltalk else trace,
         }
 
     def _display_args(self, call: dict, lang: str) -> dict:

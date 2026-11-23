@@ -9,12 +9,38 @@ from __future__ import annotations
 
 import json
 
-INTENTS = ("overview", "ranking", "scenario", "compare", "evidence", "advice")
-TOOL_NAMES = ("catalog", "ranking", "scenario", "compare", "evidence", "search", "meta")
+INTENTS = ("overview", "ranking", "scenario", "compare", "evidence", "advice", "smalltalk", "video")
+TOOL_NAMES = ("catalog", "ranking", "scenario", "compare", "evidence", "search", "meta", "videos")
+
+
+ROLE_HINTS = {
+    "en": {
+        "founder": "Audience: a startup founder / small team. Prioritise feasibility, time-to-validation, MVP scope and a 2-4 week PoC; be explicit about what to cut.",
+        "enterprise": "Audience: an enterprise product/strategy team. Prioritise compliance, org coordination, scaling risk and a decision memo suitable for leadership review.",
+        "investor": "Audience: an investor / market researcher. Prioritise market size, competition, evidence strength, timing and downside risk.",
+        "pm": "Audience: a product manager. Prioritise user pain, product roadmap, success metrics, delivery milestones and trade-offs.",
+    },
+    "zh": {
+        "founder": "读者：创业团队/小团队。优先考虑可行性、验证速度、MVP 范围与 2-4 周 PoC，明确要砍掉什么。",
+        "enterprise": "读者：大厂产品/战略团队。优先考虑合规、组织协同、规模化风险，输出适合向上汇报的决策材料。",
+        "investor": "读者：投资/研究人员。优先考虑市场规模、竞争格局、证据强度、时机与下行风险。",
+        "pm": "读者：产品经理。优先考虑用户痛点、产品路线图、成功指标、交付里程碑与取舍。",
+    },
+}
+
+
+def role_hint(role: str, lang: str = "en") -> str:
+    return ROLE_HINTS.get("zh" if lang == "zh" else "en", {}).get(role or "founder", "")
+
+
+LANGUAGE_NAMES = {
+    "en": "English", "zh": "Chinese (简体中文)", "ja": "Japanese (日本語)",
+    "es": "Spanish (Español)", "fr": "French (Français)", "de": "German (Deutsch)",
+}
 
 
 def _language(lang: str) -> str:
-    return "Chinese (简体中文)" if lang == "zh" else "English"
+    return LANGUAGE_NAMES.get(lang, "English")
 
 
 def skill_text(lang: str = "en") -> str:
@@ -44,31 +70,36 @@ def skill_text(lang: str = "en") -> str:
     )
 
 
-def planner_system(catalog: list[dict], lang: str = "en") -> str:
+def planner_system(catalog: list[dict], lang: str = "en", role: str = "founder") -> str:
     catalog_json = json.dumps(catalog, ensure_ascii=False, indent=1)
     if lang == "zh":
         return (
             f"{skill_text(lang)}\n\n"
             "你现在处于【规划阶段】。根据问题和场景目录，输出严格 JSON（不要 Markdown、不要代码块、不要多余文字）：\n"
-            '{"intent": "overview|ranking|scenario|compare|evidence|advice", '
+            '{"intent": "overview|ranking|scenario|compare|evidence|advice|smalltalk|video", '
             '"scenarios": ["场景id"], "focus": "value|feasibility|gap|demand|risk|action|none", '
             '"tools": [{"name": "catalog|ranking|scenario|compare|evidence|search|meta", "args": {}}], '
             '"reason": "一句话规划理由"}\n'
-            "规则：compare 必须给 2 个场景；scenario/advice/evidence 至少给 1 个场景；"
+            "规则：问候/自我介绍/感谢/闲聊 → intent=smalltalk 且 tools=[]（不做机会推荐，不要提意图/工具/工作流）；"
+            "视频/看视频/推荐视频 → intent=video 且 tools=[{\"name\":\"videos\",\"args\":{}}]（可带场景）；"
+            "compare 必须给 2 个场景；scenario/advice/evidence 至少给 1 个场景；"
             "最多调用 4 个工具；场景 id 必须来自目录（中文 id）。\n\n"
-            f"【场景目录】\n{catalog_json}"
+            f"【场景目录】\n{catalog_json}\n\n【读者角色】{role_hint(role, lang)}"
         )
     return (
         f"{skill_text(lang)}\n\n"
         "You are in the PLANNING phase. Given the question and scenario catalog, return strict JSON "
         "(no Markdown, no code fences, no extra text):\n"
-        '{"intent": "overview|ranking|scenario|compare|evidence|advice", '
+        '{"intent": "overview|ranking|scenario|compare|evidence|advice|smalltalk|video", '
         '"scenarios": ["scenario id"], "focus": "value|feasibility|gap|demand|risk|action|none", '
         '"tools": [{"name": "catalog|ranking|scenario|compare|evidence|search|meta", "args": {}}], '
         '"reason": "one-line planning rationale"}\n'
-        "Rules: compare needs exactly two scenarios; scenario/advice/evidence need at least one scenario; "
-        "call at most four tools; scenario ids must come from the catalog.\n\n"
-        f"[Scenario catalog]\n{catalog_json}"
+        "Rules: greetings / self-introduction / thanks / chit-chat -> intent=smalltalk and tools=[] "
+        "(do NOT pitch a scenario and never mention intent/tools/workflow); "
+        "video / watch / recommend videos -> intent=video and tools=[{\"name\":\"videos\",\"args\":{}}] "
+        "(scenario optional); compare needs exactly two scenarios; scenario/advice/evidence need at "
+        "least one scenario; call at most four tools; scenario ids must come from the catalog.\n\n"
+        f"[Scenario catalog]\n{catalog_json}\n\n[Audience] {role_hint(role, lang)}"
     )
 
 
@@ -79,14 +110,19 @@ def planner_user(question: str, history: list[dict], lang: str = "en") -> str:
     return f"Recent conversation:\n{transcript}\n\nCurrent question: {question}\nAnswer in {_language(lang)}."
 
 
-def responder_system(lang: str = "en") -> str:
+def responder_system(lang: str = "en", role: str = "founder") -> str:
     if lang == "zh":
         return (
             f"{skill_text(lang)}\n\n"
             "你现在处于【作答阶段】。只能使用用户消息中给出的工具结果，输出严格 JSON：\n"
             '{"heading": "简短标题", "advice": "一句话建议（含关键数字与动作）", '
             '"reply": "2-3 句说明", "actions": ["3-4 条行动建议"], "risks": ["3-4 条风险或局限"]}\n'
-            "不要输出 Markdown、代码块或额外文字；数字必须与工具结果一致；用简体中文。"
+            "如果 intent 是 smalltalk：像产品向导一样自然回应。advice 用一句友好问候；reply 用 2-3 句说明你能帮什么"
+            "（选方向、做对比、查证据、出 PoC、看视频），并给 2-3 个可以直接问的例子。"
+            "严禁出现“意图/smalltalk/工具/工作流/未调用/评分公式/AHP/权重”等内部术语；不要推荐具体场景；actions/risks 为空。"
+            "如果 intent 是 video：直接展示外部视频链接（非证据库），邀请用户指定场景以获得更精准结果；"
+            "不要抱怨缺少评分或证据。"
+            f"读者角色：{role_hint(role, lang)} 不要输出 Markdown、代码块或额外文字；数字必须与工具结果一致；用简体中文。"
         )
     return (
         f"{skill_text(lang)}\n\n"
@@ -94,7 +130,13 @@ def responder_system(lang: str = "en") -> str:
         '{"heading": "short heading", "advice": "one-sentence advice with key numbers and an action", '
         '"reply": "2-3 supporting sentences", "actions": ["3-4 concrete actions"], '
         '"risks": ["3-4 risks or limitations"]}\n'
-        "No Markdown, no code fences, no extra text; numbers must match the tool results; answer in English."
+        "If intent is smalltalk: reply like a warm product guide. `advice` is a friendly one-sentence greeting; "
+        "`reply` is 2-3 sentences on what you can help with (choose a direction, compare scenarios, verify "
+        "evidence, draft a PoC, watch videos) plus 2-3 example questions. Never mention intent, tools, workflow, "
+        "classification, or scoring formulas; do not pitch a specific scenario; actions/risks stay empty. "
+        "If intent is video: present the external video links directly (not evidence) and invite the user to "
+        "pick a scenario for a sharper search; do not complain about missing scores or evidence. "
+        "No Markdown, no code fences, no extra text; numbers must match the tool results."
     )
 
 
@@ -112,6 +154,9 @@ def responder_user(question: str, plan: dict, tool_results: list[dict], lang: st
 def chips_for(intent: str, lang: str = "en") -> list[str]:
     if lang == "zh":
         return {
+            "video": ["看知识管理与文档问答的视频", "哪个场景最值得优先做？", "给我一个 2 周 PoC 方案", "对比 安全合规 和 多智能体"],
+            "smalltalk": ["哪个场景最值得优先做？", "对比 安全合规 和 多智能体",
+                          "知识管理与文档问答 的证据", "给我一个 2 周 PoC 方案"],
             "overview": ["哪个场景最值得优先做？", "对比 安全合规 和 多智能体",
                          "知识管理与文档问答 的证据", "给我一个 2 周 PoC 方案"],
             "ranking": ["对比第 1 名和第 2 名", "为什么安全合规可行性低？",
@@ -126,6 +171,12 @@ def chips_for(intent: str, lang: str = "en") -> list[str]:
                        "给我一个 2 周 PoC 方案"],
         }.get(intent, ["哪个场景最值得优先做？", "对比 安全合规 和 多智能体"])
     return {
+        "video": ["Show videos for Knowledge Management & Document QA", "Which scenario should we prioritise?",
+                 "Give me a 2-week PoC plan", "Compare Security, Compliance & Privacy vs Multi-agent"],
+        "smalltalk": ["Which scenario should we prioritise?",
+                     "Compare Security, Compliance & Privacy vs Multi-agent",
+                     "Show evidence for Knowledge Management & Document QA",
+                     "Give me a 2-week PoC plan"],
         "overview": ["Which scenario should we prioritise?",
                      "Compare Security, Compliance & Privacy vs Multi-agent",
                      "Show evidence for Knowledge Management & Document QA",

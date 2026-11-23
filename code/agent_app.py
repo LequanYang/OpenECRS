@@ -28,12 +28,70 @@ import agent_tools
 
 BASE = Path(__file__).resolve().parents[1]
 UI_FILE = BASE / "code" / "agent_ui.html"
+FEATURES_CSS = BASE / "code" / "agent_ui_features.css"
+FEATURES_JS = BASE / "code" / "agent_ui_features.js"
 DATA_FILE = BASE / "outputs" / "agent_ui" / "data.json"
+INSIGHTS_FILE = BASE / "outputs" / "agent_ui" / "insights.json"
+WORKSPACE_FILE = BASE / "outputs" / "agent_ui" / "workspace.json"
 LOG_FILE = BASE / "outputs" / "agent_ui" / "agent.log"
+SESSION_FILE = BASE / "outputs" / "agent_ui" / "sessions.json"
+MAX_SESSIONS = 60
+MAX_MESSAGES = 24
 
-SESSIONS: dict[str, dict] = {}
 LOCK = threading.Lock()
 DATA = None
+
+
+def _load_sessions() -> dict:
+    try:
+        raw = json.loads(SESSION_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+    sessions = {}
+    for sid, state in raw.items():
+        if not isinstance(state, dict):
+            continue
+        messages = state.get("messages") or []
+        last_answer = None
+        for item in reversed(messages):
+            if item.get("answer"):
+                last_answer = item["answer"]
+                break
+        sessions[sid] = {
+            "turns": int(state.get("turns", 0)),
+            "history": state.get("history") or [],
+            "messages": messages[-MAX_MESSAGES:],
+            "title": state.get("title") or "",
+            "updated_at": state.get("updated_at") or "",
+            "last_answer": last_answer,
+        }
+    return sessions
+
+
+def _save_sessions() -> None:
+    try:
+        with LOCK:
+            items = sorted(SESSIONS.items(), key=lambda kv: kv[1].get("updated_at", ""), reverse=True)[:MAX_SESSIONS]
+            payload = {}
+            for sid, state in items:
+                payload[sid] = {
+                    "turns": state.get("turns", 0),
+                    "history": (state.get("history") or [])[-MAX_MESSAGES:],
+                    "messages": (state.get("messages") or [])[-MAX_MESSAGES:],
+                    "title": state.get("title", ""),
+                    "updated_at": state.get("updated_at", ""),
+                }
+            SESSION_FILE.parent.mkdir(parents=True, exist_ok=True)
+            tmp = SESSION_FILE.with_suffix(".tmp")
+            tmp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            tmp.replace(SESSION_FILE)
+    except OSError:
+        pass
+
+
+SESSIONS: dict[str, dict] = _load_sessions()
 
 
 def get_data() -> agent_tools.ScenarioData:
@@ -41,6 +99,48 @@ def get_data() -> agent_tools.ScenarioData:
     if DATA is None:
         DATA = agent_tools.ScenarioData(agent_tools.load_data())
     return DATA
+
+
+def _features_module():
+    import agent_features
+    return agent_features
+
+
+def _insights_module():
+    import agent_insights
+    return agent_insights
+
+
+def _load_workspace() -> list[dict]:
+    try:
+        raw = json.loads(WORKSPACE_FILE.read_text(encoding="utf-8"))
+        items = raw.get("items") if isinstance(raw, dict) else raw
+        return [item for item in (items or []) if isinstance(item, dict)]
+    except (OSError, ValueError):
+        return []
+
+
+def _save_workspace(items: list[dict]) -> None:
+    try:
+        WORKSPACE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = WORKSPACE_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"items": items[-200:]}, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(WORKSPACE_FILE)
+    except OSError:
+        pass
+
+
+def _narrate(kind: str, payload: dict, lang: str, role: str):
+    try:
+        agent_features = _features_module()
+        builder = {"wizard": agent_features.build_wizard_messages,
+                   "poc": agent_features.build_poc_messages,
+                   "portfolio": agent_features.build_portfolio_messages}[kind]
+        provider = agent_providers.get_provider(agent_settings.load_settings())
+        result = provider.complete(builder(payload, lang, role), max_tokens=700, temperature=0.3)
+        return agent_features.parse_narrative(result.get("content", ""))
+    except Exception:
+        return None
 
 
 def log_event(**fields) -> None:
@@ -53,6 +153,13 @@ def log_event(**fields) -> None:
         pass
 
 
+def _preview(state: dict) -> str:
+    for item in reversed(state.get("messages") or []):
+        if item.get("role") == "assistant":
+            return str(item.get("content") or "")[:80]
+    return ""
+
+
 def _session(sid: str) -> dict:
     sid = sid or "default"
     with LOCK:
@@ -60,21 +167,21 @@ def _session(sid: str) -> dict:
 
 
 def _merge_for_test(body: dict) -> dict:
-    """Apply unsaved form values on top of the saved settings (for Test)."""
+    """Apply unsaved form / profile values on top of the active profile (for Test)."""
     settings = agent_settings.load_settings()
-    if body.get("backend") in ("api", "local"):
-        settings["backend"] = body["backend"]
-    for section in ("api", "local"):
-        incoming = body.get(section)
-        if isinstance(incoming, dict):
-            for key in settings[section]:
-                value = incoming.get(key)
-                if value not in (None, ""):
-                    settings[section][key] = value
+    active = dict(agent_settings.active_profile(settings))
+    incoming = body.get("profile") if isinstance(body.get("profile"), dict) else body
+    profile = {
+        "id": active.get("id", "preview"),
+        "name": incoming.get("name") or active.get("name"),
+        "backend": incoming.get("backend") or active.get("backend", "api"),
+        "api": {**active.get("api", {}), **(incoming.get("api") or {})},
+        "local": {**active.get("local", {}), **(incoming.get("local") or {})},
+    }
     key = body.get("api_key") or (body.get("api") or {}).get("api_key")
     if key:
-        settings["api"]["api_key"] = str(key).strip()
-    return settings
+        profile["api"]["api_key"] = str(key).strip()
+    return {"backend": profile["backend"], "api": profile["api"], "local": profile["local"]}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -115,6 +222,55 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, UI_FILE.read_bytes(), "text/html; charset=utf-8")
         if path == "/api/data":
             return self._send(200, DATA_FILE.read_bytes(), "application/json; charset=utf-8")
+        if path.startswith("/assets/"):
+            name = path[len("/assets/"):]
+            if not name or "/" in name or ".." in name:
+                return self._json(404, {"error": "not found"})
+            asset = BASE / "code" / "assets" / name
+            if not asset.is_file():
+                return self._json(404, {"error": "not found"})
+            ctype = {"png": "image/png", "svg": "image/svg+xml", "jpg": "image/jpeg",
+                     "webp": "image/webp", "ico": "image/x-icon"}.get(asset.suffix.lstrip(".").lower(), "application/octet-stream")
+            return self._send(200, asset.read_bytes(), ctype)
+        if path == "/agent_ui_features.css":
+            if not FEATURES_CSS.exists():
+                return self._json(404, {"error": "features css missing"})
+            return self._send(200, FEATURES_CSS.read_bytes(), "text/css; charset=utf-8")
+        if path == "/agent_ui_features.js":
+            if not FEATURES_JS.exists():
+                return self._json(404, {"error": "features js missing"})
+            return self._send(200, FEATURES_JS.read_bytes(), "application/javascript; charset=utf-8")
+        if path == "/api/evidence":
+            return self._evidence(parse_qs(urlparse(self.path).query))
+        if path == "/api/scenario_detail":
+            query = parse_qs(urlparse(self.path).query)
+            return self._scenario_detail((query.get("name") or [""])[0],
+                                         (query.get("lang") or ["zh"])[0])
+        if path == "/api/videos":
+            query = parse_qs(urlparse(self.path).query)
+            return self._videos((query.get("scenario") or [""])[0],
+                                (query.get("lang") or ["zh"])[0])
+        if path == "/api/workspace":
+            return self._json(200, {"items": _load_workspace()})
+        if path == "/api/sessions":
+            query = parse_qs(urlparse(self.path).query)
+            needle = (query.get("q") or [""])[0].strip().lower()
+            items = sorted(SESSIONS.items(), key=lambda kv: kv[1].get("updated_at", ""), reverse=True)
+            if needle:
+                items = [(sid, st) for sid, st in items if needle in (st.get("title") or "").lower()
+                         or needle in _preview(st).lower()]
+            items = items[:40]
+            return self._json(200, {"sessions": [
+                {"id": sid, "title": state.get("title") or "", "updated_at": state.get("updated_at") or "",
+                 "turns": state.get("turns", 0), "preview": _preview(state)}
+                for sid, state in items]})
+        if path == "/api/session":
+            query = parse_qs(urlparse(self.path).query)
+            sid = (query.get("sid") or ["default"])[0]
+            state = SESSIONS.get(sid) or {"title": "", "updated_at": "", "messages": []}
+            return self._json(200, {"id": sid, "title": state.get("title", ""),
+                                    "updated_at": state.get("updated_at", ""),
+                                    "messages": state.get("messages") or []})
         if path == "/api/health":
             info = agent_providers.provider_info()
             public = agent_settings.public_settings()
@@ -129,6 +285,17 @@ class Handler(BaseHTTPRequestHandler):
             return self._print_report((query.get("sid") or ["default"])[0])
         return self._json(404, {"error": "not found"})
 
+    def do_DELETE(self):
+        path = urlparse(self.path).path
+        if path == "/api/session":
+            query = parse_qs(urlparse(self.path).query)
+            sid = (query.get("sid") or [""])[0]
+            if sid and sid in SESSIONS:
+                del SESSIONS[sid]
+                _save_sessions()
+            return self._json(200, {"ok": True})
+        return self._json(404, {"error": "not found"})
+
     def do_POST(self):
         path = urlparse(self.path).path
         body = self._read_json()
@@ -139,8 +306,20 @@ class Handler(BaseHTTPRequestHandler):
                 return self._pdf(body)
             if path == "/api/settings":
                 return self._save_settings(body)
+            if path == "/api/active":
+                return self._set_active(body)
             if path == "/api/test":
                 return self._test(body)
+            if path == "/api/wizard":
+                return self._wizard(body)
+            if path == "/api/poc":
+                return self._poc(body)
+            if path == "/api/portfolio":
+                return self._portfolio(body)
+            if path == "/api/workspace":
+                return self._workspace_update(body)
+            if path == "/api/session/rename":
+                return self._rename_session(body)
         except Exception as exc:  # never kill the connection silently
             log_event(route=path, ok=False, error=f"{type(exc).__name__}: {exc}")
             return self._json(500, {"error": f"{type(exc).__name__}: {exc}"})
@@ -153,6 +332,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"error": "message is required"})
         session_id = str(body.get("session") or "default")
         lang = str(body.get("lang") or "en").lower()
+        role = str(body.get("role") or "founder").lower()
+        if role not in ("founder", "enterprise", "investor", "pm"):
+            role = "founder"
         settings = agent_settings.load_settings()
         public = agent_settings.public_settings()
         if not public["ready"]:
@@ -165,18 +347,137 @@ class Handler(BaseHTTPRequestHandler):
         state = _session(session_id)
         try:
             runtime = agent_core.AgentRuntime(settings, get_data())
-            answer = runtime.chat(message, state, lang=lang)
+            answer = runtime.chat(message, state, lang=lang, role=role)
         except agent_providers.LLMRequiredError as exc:
             log_event(route="/api/chat", ok=False, error=str(exc), message=message[:120])
             return self._json(428, {"error": str(exc), "hint": exc.hint, "code": "llm_required"})
         except (agent_core.AgentError, agent_providers.ProviderError) as exc:
             log_event(route="/api/chat", ok=False, error=str(exc), message=message[:120])
             return self._json(502, {"error": str(exc), "code": "llm_error"})
+        stamp = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+        state.setdefault("messages", [])
+        state["messages"].append({"role": "user", "content": message, "at": stamp})
+        state["messages"].append({"role": "assistant", "content": answer.get("advice", ""),
+                                  "answer": answer, "at": stamp})
+        state["messages"] = state["messages"][-MAX_MESSAGES:]
+        state["title"] = state.get("title") or message[:60]
+        state["updated_at"] = stamp
+        _save_sessions()
         log_event(route="/api/chat", ok=True, lang=lang, session=session_id,
                   kind=answer.get("kind"), engine=(answer.get("engine") or {}).get("label"),
                   latency_ms=(answer.get("engine") or {}).get("latency_ms"),
                   message=message[:120])
         return self._json(200, answer)
+
+    def _evidence(self, query: dict):
+        try:
+            agent_insights = _insights_module()
+        except ImportError:
+            return self._json(503, {"error": "insights module not available"})
+        items = agent_insights.evidence_index(get_data())
+        args = {
+            "scenario": (query.get("scenario") or [""])[0] or None,
+            "source": (query.get("source") or [""])[0] or None,
+            "year": (query.get("year") or [""])[0] or None,
+            "min_confidence": float((query.get("min_confidence") or ["0"])[0] or 0),
+            "kind": (query.get("kind") or ["all"])[0],
+            "q": (query.get("q") or [""])[0] or None,
+            "limit": max(1, min(200, int((query.get("limit") or ["100"])[0] or 100))),
+        }
+        try:
+            filtered = agent_insights.query(items, **args)
+        except TypeError:
+            filtered = items
+        return self._json(200, {"items": filtered, "total": len(filtered),
+                                "facets": agent_insights.facets(items)})
+
+    def _scenario_detail(self, name: str, lang: str):
+        try:
+            agent_insights = _insights_module()
+        except ImportError:
+            return self._json(503, {"error": "insights module not available"})
+        insights = agent_insights.load_insights(INSIGHTS_FILE)
+        detail = agent_insights.scenario_detail(name, get_data(), insights)
+        if detail.get("error"):
+            return self._json(404, detail)
+        return self._json(200, detail)
+
+    def _videos(self, scenario: str, lang: str):
+        try:
+            agent_insights = _insights_module()
+        except ImportError:
+            return self._json(503, {"error": "insights module not available"})
+        if not scenario:
+            return self._json(400, {"error": "scenario is required"})
+        return self._json(200, {"items": agent_insights.video_links(scenario, get_data(), lang)})
+
+    def _wizard(self, body: dict):
+        try:
+            agent_features = _features_module()
+        except ImportError:
+            return self._json(503, {"error": "features module not available"})
+        lang = str(body.get("lang") or "zh")
+        role = str(body.get("role") or "founder")
+        result = agent_features.wizard(body, get_data())
+        result["narrative"] = _narrate("wizard", {**body, "shortlist": result.get("shortlist")}, lang, role)
+        return self._json(200, result)
+
+    def _poc(self, body: dict):
+        try:
+            agent_features = _features_module()
+        except ImportError:
+            return self._json(503, {"error": "features module not available"})
+        lang = str(body.get("lang") or "zh")
+        role = str(body.get("role") or "founder")
+        result = agent_features.poc_plan(str(body.get("scenario") or ""),
+                                         int(body.get("weeks") or 4),
+                                         int(body.get("team_size") or 3), get_data(), lang)
+        if result.get("error"):
+            return self._json(400, result)
+        result["narrative"] = _narrate("poc", {**body, "plan": result}, lang, role)
+        return self._json(200, result)
+
+    def _portfolio(self, body: dict):
+        try:
+            agent_features = _features_module()
+        except ImportError:
+            return self._json(503, {"error": "features module not available"})
+        lang = str(body.get("lang") or "zh")
+        role = str(body.get("role") or "founder")
+        result = agent_features.portfolio(int(body.get("team_size") or 3),
+                                          int(body.get("weeks") or 12),
+                                          int(body.get("budget_usd") or 0), get_data(), lang)
+        result["narrative"] = _narrate("portfolio", {**body, "result": result}, lang, role)
+        return self._json(200, result)
+
+    def _workspace_update(self, body: dict):
+        items = _load_workspace()
+        action = str(body.get("action") or "add")
+        scenario = str(body.get("scenario") or "").strip()
+        note = str(body.get("note") or "").strip()
+        if action in ("add", "note") and scenario:
+            existing = next((item for item in items if item.get("scenario") == scenario), None)
+            if existing:
+                if note:
+                    existing["note"] = note
+                existing["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+            else:
+                items.append({"scenario": scenario, "note": note,
+                              "created_at": time.strftime("%Y-%m-%dT%H:%M:%S%z")})
+            _save_workspace(items)
+        elif action == "remove" and scenario:
+            items = [item for item in items if item.get("scenario") != scenario]
+            _save_workspace(items)
+        return self._json(200, {"items": items})
+
+    def _rename_session(self, body: dict):
+        sid = str(body.get("sid") or "")
+        title = str(body.get("title") or "").strip()[:120]
+        if not sid or sid not in SESSIONS or not title:
+            return self._json(400, {"error": "sid and title are required"})
+        SESSIONS[sid]["title"] = title
+        _save_sessions()
+        return self._json(200, {"ok": True, "id": sid, "title": title})
 
     def _pdf(self, body: dict):
         session_id = str(body.get("session") or "default")
@@ -215,12 +516,24 @@ class Handler(BaseHTTPRequestHandler):
 
     def _save_settings(self, body: dict):
         try:
-            agent_settings.save_settings(body, clear_key=bool(body.get("clear_key")))
+            agent_settings.save_settings(body)
         except agent_settings.SettingsError as exc:
             log_event(route="/api/settings", ok=False, error=str(exc))
             return self._json(400, {"error": str(exc)})
         public = agent_settings.public_settings()
-        log_event(route="/api/settings", ok=True, backend=public["backend"], ready=public["ready"])
+        log_event(route="/api/settings", ok=True, active=public["active"], backend=public["backend"],
+                  name=public.get("name"), ready=public["ready"])
+        return self._json(200, public)
+
+    def _set_active(self, body: dict):
+        profile_id = str(body.get("profile_id") or "")
+        try:
+            agent_settings.set_active(profile_id)
+        except agent_settings.SettingsError as exc:
+            return self._json(400, {"error": str(exc)})
+        public = agent_settings.public_settings()
+        log_event(route="/api/active", ok=True, active=public["active"], name=public.get("name"),
+                  ready=public["ready"])
         return self._json(200, public)
 
     def _test(self, body: dict):

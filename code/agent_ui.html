@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenECRS · AI Opportunity Radar</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111214'/%3E%3Ccircle cx='16' cy='16' r='5' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon-64.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <style>
   :root{
     --bg:#f6f7f8; --panel:#ffffff; --ink:#111214; --muted:#6b7078; --faint:#9aa0a6;
@@ -21,14 +23,19 @@
   .app{display:flex;height:100vh;overflow:hidden}
 
   /* ---------------- sidebar ---------------- */
-  .side{width:292px;flex:0 0 292px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 14px 14px}
+  .side{width:292px;flex:0 0 292px;transition:width .18s ease,flex-basis .18s ease;background:#fbfbfa;display:flex;flex-direction:column;padding:18px 14px 14px}
   .brand{display:flex;align-items:center;gap:9px;padding:0 4px 16px}
   .mark{width:26px;height:26px;border-radius:8px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;letter-spacing:.03em}
   .brand-name{font-weight:600;font-size:14px;letter-spacing:.01em}
-  .brand-sub{font-size:11px;color:var(--faint);margin-top:1px}
+  .brand-sub{font-size:10.5px;color:var(--faint);margin-top:0}
   .newchat{display:flex;align-items:center;gap:7px;width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--panel);font-weight:500;transition:.15s}
   .newchat:hover{background:var(--soft)}
+  .side-scroll{flex:1;min-height:0;overflow-y:auto;margin:0 -4px;padding:0 4px}
   .side-label{font-size:11px;color:var(--faint);letter-spacing:.08em;margin:20px 6px 7px;text-transform:uppercase}
+  .history{display:flex;flex-direction:column;gap:1px}
+  .history button{text-align:left;padding:6px 8px;border-radius:8px;color:#3c4045;font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .history button:hover{background:var(--soft);color:var(--ink)}
+  .history button.active{background:var(--soft);color:var(--ink);font-weight:500}
   .quick{display:flex;flex-direction:column;gap:1px}
   .quick button{text-align:left;padding:7px 9px;border-radius:8px;color:#3c4045;font-size:13px;line-height:1.45;transition:.12s}
   .quick button:hover{background:var(--soft);color:var(--ink)}
@@ -103,6 +110,11 @@
   .msg{display:flex;gap:12px;align-items:flex-start}
   .msg.user{justify-content:flex-end}
   .avatar{width:26px;height:26px;flex:0 0 26px;border-radius:8px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;letter-spacing:.03em;margin-top:2px}
+  .avatar-logo{background:url('/assets/logo-mark.png') center/contain no-repeat;background-color:transparent;color:transparent;border-radius:8px}
+  .settings-tabs{display:flex;gap:4px;background:var(--soft);border-radius:10px;padding:4px;margin:0 0 16px}
+  .settings-tabs button{flex:1;padding:7px 10px;border-radius:7px;font-size:12px;color:var(--muted)}
+  .settings-tabs button.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .settings-select{width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:9px;background:var(--panel);font-size:12.5px;color:var(--ink)}
   .bubble{max-width:78%;background:var(--ink);color:#fff;padding:11px 15px;border-radius:16px 16px 4px 16px;font-size:13.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
   .msg-body{flex:1;min-width:0}
   .msg-head{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--faint);margin:0 0 10px 2px;flex-wrap:wrap}
@@ -160,6 +172,12 @@
   textarea{width:100%;border:none;outline:none;resize:none;background:transparent;font-family:var(--font);font-size:14px;line-height:1.6;color:var(--ink);max-height:150px;padding:2px 2px}
   textarea::placeholder{color:var(--faint)}
   .input-row{display:flex;align-items:flex-end;gap:10px}
+  .model-pick{position:relative;flex:0 0 auto}
+  .composer-model{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid var(--line-strong);border-radius:9px;background:var(--panel);font-size:11.5px;color:var(--muted);max-width:170px}
+  .composer-model:hover{background:var(--soft)}
+  .composer-model span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:138px}
+  .composer-model svg{flex:0 0 auto;color:var(--faint)}
+  .composer-menu{top:auto;bottom:calc(100% + 10px);right:0}
   .send{width:36px;height:36px;flex:0 0 36px;border-radius:12px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;transition:.15s}
   .send:hover{opacity:.86}
   .send:disabled{opacity:.35}
@@ -196,6 +214,25 @@
   .tabs button.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
   .pill.warn{border-color:#f0d9c4;background:#fff8f1;color:#8a4b22}
   .pill.warn .dot{background:#d9822b}
+  .profile-wrap{position:relative}
+  .profile-btn{cursor:pointer;gap:6px;padding:4px 9px;max-width:240px}
+  .profile-btn #profileLabel{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .profile-btn svg{flex:0 0 auto;color:var(--faint)}
+  .profile-menu{position:absolute;top:calc(100% + 8px);right:0;width:320px;max-height:70vh;overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 48px rgba(17,18,20,.16);z-index:80;padding:8px}
+  .profile-menu[hidden]{display:none}
+  .profile-menu-title{font-size:11px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;padding:6px 8px}
+  .profile-item{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:9px 10px;border-radius:10px}
+  .profile-item:hover{background:var(--soft)}
+  .profile-item.active{background:var(--soft)}
+  .pi-name{font-size:13px;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pi-meta{font-size:10.5px;color:var(--faint);white-space:nowrap}
+  .pi-check{width:16px;text-align:right;color:#1b6b45;font-size:12px}
+  .profile-menu-foot{display:flex;gap:6px;border-top:1px solid var(--line);margin-top:6px;padding-top:8px}
+  .profile-menu-foot button{flex:1;padding:8px 10px;border-radius:9px;font-size:12px;color:#3c4045;background:var(--soft)}
+  .profile-menu-foot button:hover{background:var(--line)}
+  .modal-actions .spacer{flex:1}
+  .btn.danger{color:#b3261e;border-color:#f0c9c9;background:#fffafa}
+  .btn.danger:hover{background:#fff2f2}
   .trace{margin-top:18px;border-top:1px solid var(--line);padding-top:12px;font-size:12px;color:var(--muted)}
   .trace summary{cursor:pointer;color:#3c4045;font-weight:500}
   .trace ol{margin:8px 0 0 18px;padding:0;line-height:1.75}
@@ -217,29 +254,203 @@
     .composer-wrap{padding:8px 12px 14px}
     .card{padding:16px}
   }
+
+  .model-menu{position:fixed;z-index:200;width:330px;max-height:min(70vh,440px);overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 48px rgba(17,18,20,.18);padding:8px}
+  .model-menu[hidden]{display:none}
+  .model-menu-head{display:flex;align-items:center;justify-content:space-between;padding:6px 8px 8px}
+  .model-menu-head b{font-size:11px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;font-weight:600}
+  .model-menu-close{width:22px;height:22px;border-radius:6px;color:var(--faint);font-size:15px;line-height:1}
+  .model-menu-close:hover{background:var(--soft);color:var(--ink)}
+  .model-row{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:9px 10px;border-radius:10px}
+  .model-row:hover{background:var(--soft)}
+  .model-row.active{background:var(--soft)}
+  .mr-main{flex:1;min-width:0}
+  .mr-name{display:block;font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mr-meta{display:block;font-size:10.5px;color:var(--faint);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mr-check{width:16px;text-align:right;color:#1b6b45;font-size:12px;flex:0 0 auto}
+  .model-menu-foot{display:flex;gap:6px;border-top:1px solid var(--line);margin-top:6px;padding-top:8px}
+  .model-menu-foot button{flex:1;padding:8px 10px;border-radius:9px;font-size:12px;color:#3c4045;background:var(--soft)}
+  .model-menu-foot button:hover{background:var(--line)}
+  .side-empty{font-size:11.5px;color:var(--faint);padding:4px 8px;line-height:1.6}
+  .videos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .video-card{display:flex;flex-direction:column;gap:4px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none}
+  .video-card:hover{background:var(--soft);border-color:var(--line-strong)}
+  .vc-plat{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .vc-title{font-size:12.5px;color:var(--ink);line-height:1.5}
+  .vc-note{font-size:10.5px;color:var(--faint);line-height:1.5}
+  .toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);z-index:300;background:#111214;color:#fff;font-size:12.5px;padding:9px 16px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.22)}
+  .toast[hidden]{display:none}
+
+  .side-row-head{display:flex;align-items:center;justify-content:space-between}
+  .side-mini{width:22px;height:22px;border-radius:6px;color:var(--faint);font-size:13px}
+  .side-mini:hover{background:var(--soft);color:var(--ink)}
+  .side-search{width:100%;margin:2px 0 6px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel);font-size:12px;color:var(--ink)}
+  .side-search::placeholder{color:var(--faint)}
+  .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:2px 2px 4px}
+  .cap{display:flex;align-items:flex-start;gap:7px;padding:8px 8px;border:1px solid var(--line);border-radius:10px;background:var(--panel);text-align:left}
+  .cap:hover{background:var(--soft);border-color:var(--line-strong)}
+  .cap-ico{display:none}
+  .cap-txt{display:flex;flex-direction:column;min-width:0}
+  .cap-txt b{font-size:11px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cap-txt i{font-style:normal;font-size:9.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand-main{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1;align-items:flex-start}
+  .brand-home{display:flex;align-items:center;gap:8px;padding:0;border:0;background:none;cursor:default;user-select:none}
+  .logo{background-repeat:no-repeat;background-position:left center;background-size:contain;user-select:none;-webkit-user-drag:none}
+  .logo-wordmark{display:block;width:112px;height:23px;background-image:url('/assets/logo-wordmark.png');background-position:left center;background-size:contain}
+  .logo-lockup{display:none}
+  .logo-mark{display:block;width:32px;height:32px;background-image:url('/assets/logo-mark.png');background-position:center;background-size:contain}
+  .brand-sub{margin-top:2px}
+  .brand-text{min-width:0;flex:1}
+  .collapse-btn{width:24px;height:24px;border-radius:6px;color:var(--faint);font-size:16px;line-height:1;flex:0 0 auto}
+  .collapse-btn:hover{background:var(--soft);color:var(--ink)}
+  .rail{display:none}
+  .side-foot{padding:10px 4px 6px}
+  .profile-wrap2{position:relative}
+  .profile-card{display:flex;align-items:center;gap:9px;width:100%;padding:9px 8px;border:0;border-radius:10px;background:transparent;text-align:left;transition:background .12s}
+  .profile-card:hover{background:var(--soft)}
+  .profile-card .user-avatar{display:block;width:28px;height:28px;border-radius:8px;flex:0 0 auto}
+  .profile-card .user-meta{min-width:0;flex:1}
+  .profile-card .user-meta b{display:block;font-size:12px;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .profile-card .user-meta span{display:block;font-size:10px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .pc-caret{width:14px;height:14px;color:var(--faint);flex:0 0 auto;transition:transform .15s}
+  .profile-card[aria-expanded="true"] .pc-caret{transform:rotate(180deg)}
+  .profile-popover{position:absolute;left:0;right:0;bottom:calc(100% + 6px);background:var(--panel);border:0;border-radius:14px;box-shadow:0 16px 40px rgba(17,18,20,.14);padding:7px;z-index:90}
+  .profile-popover[hidden]{display:none}
+  .pp-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:9px}
+  .pp-row:hover{background:var(--soft)}
+  .pp-ico{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;color:var(--faint);flex:0 0 auto}
+  .pp-label{font-size:11.5px;color:var(--muted);flex:0 0 58px}
+  .pp-select{flex:1;min-width:0;border:0;background:transparent;font-size:11.5px;color:var(--muted);padding:2px 0;cursor:pointer}
+  .pp-select:focus{outline:none;color:var(--ink)}
+  .pp-sep{height:1px;background:var(--line);opacity:.7;margin:5px 4px}
+  .pp-link{display:flex;align-items:center;gap:9px;width:100%;padding:7px 8px;border-radius:9px;font-size:12px;color:#3c4045;text-align:left}
+  .pp-link:hover{background:var(--soft);color:var(--ink)}
+  .brand-home svg,.cap-ico svg,.rail-btn svg,.side-mini svg,.pp-ico svg,.pp-link svg,.pc-caret{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .side-mini{display:inline-flex;align-items:center;justify-content:center}
+  .side-mini svg{width:13px;height:13px}
+  .cap-ico{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;color:var(--faint);flex:0 0 auto;margin-top:1px}
+  .cap-ico svg{width:15px;height:15px}
+  .rail-btn svg{width:18px;height:18px}
+  .app.side-collapsed .side{width:68px;flex:0 0 68px;padding:18px 16px 14px;align-items:center}
+  .app.side-collapsed .brand-text,.app.side-collapsed .brand-sub,.app.side-collapsed .collapse-btn,.app.side-collapsed .newchat span,.app.side-collapsed .side-scroll,.app.side-collapsed .side-foot{display:none}
+  .app.side-collapsed .brand{justify-content:center;padding:0 0 10px;width:100%}
+  .app.side-collapsed .brand-main{align-items:center;flex:0 0 auto}
+  .app.side-collapsed .brand-word{display:none}
+  .app.side-collapsed .brand-home{cursor:pointer}
+  .app.side-collapsed .brand-mark{display:block;width:32px;height:32px}
+  .app.side-collapsed .rail{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;margin-top:10px}
+  .rail-btn{width:36px;height:36px;border-radius:10px;color:var(--muted);font-size:16px;display:flex;align-items:center;justify-content:center}
+  .rail-btn:hover{background:var(--soft);color:var(--ink)}
+  .app.side-collapsed .newchat{display:none}
+  .about-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .about-facts div{padding:9px 10px;background:var(--soft);border-radius:10px;font-size:11px;color:var(--faint)}
+  .about-facts b{display:block;font-size:13px;color:var(--ink);margin-bottom:2px;font-weight:600}
+  .history-row{display:flex;align-items:center;gap:6px;border-radius:8px}
+  .history-row:hover{background:var(--soft)}
+  .history-row button.h-main{flex:1;text-align:left;padding:6px 8px;color:#3c4045;font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:8px}
+  .history-row.active{background:var(--soft)}
+  .history-row.active button.h-main{color:var(--ink);font-weight:500}
+  .history-row .h-act{width:20px;height:20px;border-radius:5px;color:var(--faint);font-size:11px;opacity:0}
+  .history-row:hover .h-act{opacity:1}
+  .history-row .h-act:hover{background:var(--line);color:var(--ink)}
+  .scen button{display:flex;align-items:center;gap:9px}
+  .scen .rk{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--soft);color:var(--faint);font-size:9.5px;flex:0 0 auto}
+  .scen .sc{min-width:28px;text-align:right}
+  .scen-more{width:100%;margin-top:2px;padding:6px 8px;border-radius:8px;color:var(--faint);font-size:11px;text-align:left}
+  .scen-more:hover{background:var(--soft);color:var(--muted)}
+  .site-hero{background:linear-gradient(180deg,#fff 0%,#fbfbfa 100%);border:1px solid var(--line);border-radius:18px;padding:26px 28px}
+  .site-hero .eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  .site-hero h1{font-size:26px;line-height:1.3;margin:8px 0 10px;letter-spacing:-.01em}
+  .site-hero .lede{font-size:13px;color:var(--muted);line-height:1.75;max-width:680px}
+  .hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .hero-stats{display:flex;gap:22px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .hero-stats div{font-size:10.5px;color:var(--faint)}
+  .hero-stats b{display:block;font-size:16px;color:var(--ink);font-weight:600;margin-bottom:2px}
+  .feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+  .feature-card{text-align:left;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+  .feature-card:hover{background:var(--soft);border-color:var(--line-strong)}
+  .feature-card .fc-ico{font-size:15px;color:var(--muted)}
+  .feature-card b{display:block;font-size:12.5px;margin:7px 0 4px}
+  .feature-card span{font-size:11px;color:var(--faint);line-height:1.5}
+  .how-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+  .how-step{padding:12px 14px;border:1px dashed var(--line-strong);border-radius:12px}
+  .how-step b{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  .how-step p{font-size:11.5px;color:var(--muted);line-height:1.6;margin:4px 0 0}
+  .tour{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center}
+  .tour[hidden]{display:none}
+  .tour-mask{position:absolute;inset:0;background:rgba(17,18,20,.45);backdrop-filter:blur(2px)}
+  .tour-card{position:relative;width:min(520px,92vw);background:var(--panel);border-radius:18px;padding:22px 24px;box-shadow:0 30px 80px rgba(0,0,0,.28)}
+  .tour-top{display:flex;align-items:center;justify-content:space-between}
+  .tour-step{font-size:10.5px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase}
+  .tour-skip{font-size:11.5px;color:var(--faint)}
+  .tour-card h3{font-size:19px;margin:10px 0 8px}
+  .tour-card p{font-size:12.5px;color:var(--muted);line-height:1.75;margin:0}
+  .tour-list{margin:10px 0 0 18px;padding:0;font-size:12px;color:var(--muted);line-height:1.8}
+  .tour-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+  .tour-actions .btn:disabled{opacity:.4}
+  @media (max-width:900px){.feature-grid{grid-template-columns:1fr 1fr}.how-strip{grid-template-columns:1fr}}
 </style>
+  <link rel="stylesheet" href="/agent_ui_features.css">
+  <script defer src="/agent_ui_features.js"></script>
 </head>
 <body>
 <div class="app" id="app">
   <div class="scrim" id="scrim"></div>
   <aside class="side" id="side">
     <div class="brand">
-      <div class="mark">OE</div>
-      <div>
-        <div class="brand-name">OpenECRS</div>
+      <div class="brand-main">
+        <button class="brand-home" id="brandHome" title="OpenECRS" aria-label="OpenECRS">
+          <span class="logo logo-mark brand-mark" role="img" aria-label="OpenECRS"></span>
+          <span class="logo logo-wordmark brand-word" role="img" aria-label="OpenECRS"></span>
+        </button>
         <div class="brand-sub" id="brandSub">AI Opportunity Radar</div>
       </div>
+      <button class="collapse-btn" id="collapseBtn" title="Collapse sidebar" aria-label="Collapse sidebar">‹</button>
+    </div>
+    <div class="rail" id="rail">
+      <button class="rail-btn" id="railExpand" title="Expand sidebar" aria-label="Expand sidebar"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="rail-btn" id="railNew" title="New chat" aria-label="New chat"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button class="rail-btn" id="railHistory" title="History" aria-label="History"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></button>
+      <button class="rail-btn" id="railSettings" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="17" r="2"/></svg></button>
     </div>
     <button class="newchat" id="newchat">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
       <span id="newChatLabel">New chat</span>
     </button>
-    <div class="side-label" id="quickLabel">Quick questions</div>
-    <div class="quick" id="quick"></div>
-    <div class="side-label" id="scenLabel">Scenarios</div>
-    <div class="scen" id="scen"></div>
-    <div class="side-foot" id="sideFoot">
-      <b>Rule-based evidence review</b> · 15,525 records<br>Data cut-off 2026-11-20 · reproducible offline
+    <div class="side-scroll">
+      <div class="side-row-head">
+        <div class="side-label" id="historyLabel">Recent chats</div>
+        <button class="side-mini" id="historyRefresh" title="Refresh" aria-label="Refresh"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg></button>
+      </div>
+      <input class="side-search" id="historySearch" type="search" placeholder="Search conversations…" autocomplete="off">
+      <div class="history" id="history"></div>
+      <div class="side-label" id="capLabel">Tools</div>
+      <div class="cap-grid">
+        <button class="cap" data-feature="wizard"><span class="cap-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M15.5 8.5l-2.2 4.8-4.8 2.2 2.2-4.8 4.8-2.2z"/></svg></span><span class="cap-txt"><b>Decision wizard</b><i>5 questions → shortlist</i></span></button>
+        <button class="cap" data-feature="evidence"><span class="cap-ico"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 13h6M10 17h4"/></svg></span><span class="cap-txt"><b>Evidence library</b><i>quotes, sources, filters</i></span></button>
+        <button class="cap" data-feature="poc"><span class="cap-ico"><svg viewBox="0 0 24 24"><path d="M6 20V5"/><path d="M6 5h11l-2 4 2 4H6"/></svg></span><span class="cap-txt"><b>PoC plan</b><i>2 / 4 / 8 weeks</i></span></button>
+        <button class="cap" data-feature="portfolio"><span class="cap-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span class="cap-txt"><b>Portfolio</b><i>team &amp; budget fit</i></span></button>
+        <button class="cap" data-feature="videos"><span class="cap-ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z"/></svg></span><span class="cap-txt"><b>Videos</b><i>external walkthroughs</i></span></button>
+        <button class="cap" data-feature="workspace"><span class="cap-ico"><svg viewBox="0 0 24 24"><path d="M12 4l2.5 5 5.5.8-4 3.9.9 5.5L12 16.6 7.1 19.2l.9-5.5-4-3.9 5.5-.8z"/></svg></span><span class="cap-txt"><b>Saved</b><i>shortlist &amp; notes</i></span></button>
+      </div>
+      <div class="side-label" id="scenLabel">Scenarios</div>
+      <div class="scen" id="scen"></div>
+    </div>
+    <div class="side-foot">
+      <div class="profile-wrap2">
+        <div class="profile-popover" id="profilePopover" hidden>
+
+          <button class="pp-link" id="answerSettingsBtn"><span class="pp-ico"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg></span><span id="answerSettingsLabel">Answer settings</span></button>
+          <button class="pp-link" id="settingsBtn"><span class="pp-ico"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="17" r="2"/></svg></span><span id="settingsLabel">Settings</span></button>
+          <button class="pp-link" id="helpBtn"><span class="pp-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5.1.7c0 1.7-2.6 2.1-2.6 4"/><path d="M12 17.2v.1"/></svg></span><span id="helpLabel">Guide</span></button>
+          <button class="pp-link" id="aboutBtn"><span class="pp-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.5v.1"/></svg></span><span id="aboutLabel">About data</span></button>
+        </div>
+        <button class="profile-card" id="profileCardBtn" aria-haspopup="menu" aria-expanded="false">
+          <span class="logo logo-mark user-avatar" aria-hidden="true"></span>
+          <span class="user-meta"><b id="userRole">Founder</b><span id="userMeta">15,525 reviews · 2026-11-20</span></span>
+          <svg class="pc-caret" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>
+        </button>
+      </div>
     </div>
   </aside>
 
@@ -248,17 +459,11 @@
       <button class="menu-btn" id="menuBtn" aria-label="Open sidebar">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
-      <span class="title">OpenECRS</span>
-      <span class="sub" id="subTitle">· AI Opportunity Radar</span>
-      <span class="pill rule" id="enginePill"><span class="dot"></span>Rule engine</span>
+      <button class="pill profile-btn" id="profileBtn" title="Switch model">
+        <span class="dot"></span><span id="profileLabel">LLM</span>
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
       <div class="top-actions">
-        <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
-          <button data-lang="en" class="active">EN</button>
-          <button data-lang="zh">中文</button>
-        </div>
-        <button class="icon-btn" id="settingsBtn" title="Connect an LLM API" aria-label="Connect an LLM API">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.36.43.66.79.81H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        </button>
         <button class="btn" id="pdfTop" title="Export the last answer as a PDF brief">Export PDF</button>
       </div>
     </div>
@@ -273,34 +478,72 @@
 
     <div class="modal" id="modal" hidden>
       <div class="modal-mask" id="modalMask"></div>
-      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-card settings-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-head">
-          <div><b id="modalTitle">LLM settings</b><span class="modal-sub" id="modalSub">LLM configuration</span></div>
+          <div><b id="modalTitle">Settings</b><span class="modal-sub" id="modalSub">Model &amp; interface</span></div>
           <button class="icon-btn ghost" id="closeModal" aria-label="Close settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
         </div>
-        <p class="modal-desc" id="modalDesc"></p>
-        <div class="tabs" id="backendTabs">
-          <button data-backend="api" class="active" id="tabApi">API</button>
-          <button data-backend="local" id="tabLocal">Local fine-tuned</button>
+        <div class="settings-tabs" id="settingsTabs">
+          <button data-tab="model" class="active" id="settingsTabModel">Model</button>
+          <button data-tab="prefs" id="settingsTabPrefs">Preferences</button>
         </div>
-        <div id="apiPanel">
-          <label class="field"><span id="fBaseLabel">Base URL</span><input id="fBase" type="text" placeholder="https://api.deepseek.com/v1" spellcheck="false"></label>
-          <label class="field"><span id="fModelLabel">Model</span><input id="fModel" type="text" placeholder="deepseek-chat" spellcheck="false"></label>
-          <label class="field"><span id="fKeyLabel">API Key</span><input id="fKey" type="password" placeholder="sk-..." autocomplete="off"><small class="field-hint" id="keyHint"></small></label>
+        <div id="settingsModelPanel">
+          <p class="modal-desc" id="modalDesc"></p>
+          <label class="field"><span id="fNameLabel">Model name</span><input id="fName" type="text" placeholder="DeepSeek · deepseek-chat" spellcheck="false"></label>
+          <div class="tabs" id="backendTabs">
+            <button data-backend="api" class="active" id="tabApi">API</button>
+            <button data-backend="local" id="tabLocal">Local fine-tuned</button>
+          </div>
+          <div id="apiPanel">
+            <label class="field"><span id="fBaseLabel">Base URL</span><input id="fBase" type="text" placeholder="https://api.deepseek.com/v1" spellcheck="false"></label>
+            <label class="field"><span id="fModelLabel">Model</span><input id="fModel" type="text" placeholder="deepseek-chat" spellcheck="false"></label>
+            <label class="field"><span id="fKeyLabel">API Key</span><input id="fKey" type="password" placeholder="sk-..." autocomplete="off"><small class="field-hint" id="keyHint"></small></label>
+          </div>
+          <div id="localPanel" hidden>
+            <label class="field"><span id="fBaseModelLabel">Base model path</span><input id="fBaseModel" type="text" placeholder="models/Qwen2.5-3B-Instruct" spellcheck="false"></label>
+            <label class="field"><span id="fAdapterLabel">LoRA adapter path</span><input id="fAdapter" type="text" placeholder="outputs/lora/adapter_pilot" spellcheck="false"></label>
+            <p class="field-hint" id="localHint"></p>
+          </div>
+          <div class="modal-actions">
+            <button class="btn danger" id="deleteProfile" hidden>Delete</button>
+            <span class="spacer"></span>
+            <button class="btn" id="testBtn">Test connection</button>
+            <button class="btn primary" id="saveBtn">Save</button>
+          </div>
+          <div class="test-result" id="testResult"></div>
+          <p class="modal-foot" id="modalFoot"></p>
         </div>
-        <div id="localPanel" hidden>
-          <label class="field"><span id="fBaseModelLabel">Base model path</span><input id="fBaseModel" type="text" placeholder="models/Qwen2.5-3B-Instruct" spellcheck="false"></label>
-          <label class="field"><span id="fAdapterLabel">LoRA adapter path</span><input id="fAdapter" type="text" placeholder="outputs/lora/adapter_pilot" spellcheck="false"></label>
-          <p class="field-hint" id="localHint"></p>
+        <div id="settingsPrefsPanel" hidden>
+          <p class="modal-desc" id="prefsDesc"></p>
+          <label class="field"><span id="prefLangFieldLabel">Language</span><select id="langSelect" class="settings-select">
+            <option value="system">System</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="ja">日本語</option>
+            <option value="es">Español</option>
+          </select><small class="field-hint" id="langHint"></small></label>
+          <label class="field"><span id="prefRoleFieldLabel">Answer as</span><select id="roleSelect" class="settings-select">
+            <option value="founder">Founder / 创业</option>
+            <option value="enterprise">Enterprise / 大厂</option>
+            <option value="investor">Investor / 投资</option>
+            <option value="pm">Product / 产品</option>
+          </select></label>
+          <p class="modal-foot" id="prefsFoot"></p>
         </div>
-        <div class="modal-actions">
-          <button class="btn" id="testBtn">Test connection</button>
-          <button class="btn primary" id="saveBtn">Save</button>
+      </div>
+    </div>
+
+    <div class="modal" id="aboutModal" hidden>
+      <div class="modal-mask" id="aboutMask"></div>
+      <div class="modal-card" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <div><b id="aboutTitle">About the data</b><span class="modal-sub" id="aboutSub">OpenECRS</span></div>
+          <button class="icon-btn ghost" id="aboutClose" aria-label="Close">✕</button>
         </div>
-        <div class="test-result" id="testResult"></div>
-        <p class="modal-foot" id="modalFoot"></p>
+        <p class="modal-desc" id="aboutBody"></p>
+        <div class="about-facts" id="aboutFacts"></div>
       </div>
     </div>
 
@@ -309,6 +552,10 @@
         <div class="chips" id="chips"></div>
         <div class="input-row">
           <textarea id="input" rows="1" placeholder="Ask a question, or pick a suggestion above…"></textarea>
+          <button class="composer-model" id="composerModelBtn" title="Switch model">
+            <span id="composerModelLabel">model</span>
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
           <button class="send" id="send" aria-label="Send">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
           </button>
@@ -319,6 +566,33 @@
   </main>
 </div>
 
+<div class="model-menu" id="modelMenu" hidden>
+  <div class="model-menu-head">
+    <b id="modelMenuTitle">Models</b>
+    <button class="model-menu-close" id="modelMenuClose" aria-label="Close">×</button>
+  </div>
+  <div id="modelMenuList"></div>
+  <div class="model-menu-foot">
+    <button id="modelAdd">+ Add model</button>
+    <button id="modelManage">Settings</button>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<div class="tour" id="tour" hidden>
+  <div class="tour-mask" id="tourMask"></div>
+  <div class="tour-card" role="dialog" aria-modal="true">
+    <div class="tour-top"><span class="tour-step" id="tourStep">1 / 4</span><button class="tour-skip" id="tourSkip">Skip</button></div>
+    <h3 id="tourTitle"></h3>
+    <p id="tourBody"></p>
+    <ul class="tour-list" id="tourList"></ul>
+    <div class="tour-actions">
+      <button class="btn" id="tourPrev">Back</button>
+      <button class="btn primary" id="tourNext">Next</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const $ = (id) => document.getElementById(id);
 const thread = $('thread'), inner = $('threadInner');
@@ -326,12 +600,26 @@ let SESSION = (crypto.randomUUID ? crypto.randomUUID() : 's-' + Date.now());
 let LAST_ANSWER = null;
 let SETTINGS = null;
 let CURRENT_BACKEND = 'api';
+let EDITING_ID = null;
+let ADDING_PROFILE = false;
 let busy = false;
 
+const SUPPORTED_LANGS = ['en', 'zh', 'ja', 'es'];
+const LANG_PREF = localStorage.getItem('openecrs-lang-pref')
+  || (SUPPORTED_LANGS.includes(localStorage.getItem('openecrs-lang')) ? localStorage.getItem('openecrs-lang') : 'system');
+
+function resolveSystemLang(){
+  const nav = (navigator.language || 'en').toLowerCase();
+  if (nav.startsWith('zh')) return 'zh';
+  if (nav.startsWith('ja')) return 'ja';
+  if (nav.startsWith('es')) return 'es';
+  return 'en';
+}
+
 const LANG = (() => {
-  const p = new URLSearchParams(location.search).get('lang');
-  if (p === 'en' || p === 'zh') return p;
-  return localStorage.getItem('openecrs-lang') || 'en';
+  const q = new URLSearchParams(location.search).get('lang');
+  if (SUPPORTED_LANGS.includes(q)) return q;
+  return LANG_PREF === 'system' ? resolveSystemLang() : LANG_PREF;
 })();
 
 const I18N = {
@@ -340,6 +628,45 @@ const I18N = {
     tagline: 'AI Opportunity Radar', subTitle: '· AI Opportunity Radar',
     newChat: 'New chat', quickLabel: 'Quick questions', scenLabel: 'Scenarios',
     exportPdf: 'Export PDF', settingsTitle: 'LLM settings',
+    profileMenuTitle: 'Models', addModel: '+ Add model', manageModels: 'Settings',
+    historyLabel: 'Recent chats', noHistory: 'No conversations yet.', noResults: 'No matching conversations.',
+    aboutLabel: 'About data', answerSettingsLabel: 'Answer settings', prefLanguage: 'Language', prefRole: 'Answer as', fieldLanguage: 'Language',
+    settingsTabModel: 'Model', settingsTabPrefs: 'Preferences',
+    prefsDesc: 'Interface preferences. Language changes reload the workspace; the answer role applies to the next question immediately.',
+    prefsFoot: 'Preferences are stored locally. Model configuration is under the Model tab.',
+    langHint: 'System follows your browser language (zh / ja / es, otherwise English).', aboutTitle: 'About the evidence base',
+    aboutSub: 'OpenECRS · evidence & method',
+    aboutBody: 'OpenECRS scores 12 AI application scenarios from public AI-tooling signals. Scores are deterministic; the LLM only plans and writes. Confidences are rule-based and not calibrated — treat conclusions as hypotheses to validate with real users.',
+    aboutFactRecords: 'cleaned records', aboutFactReviews: 'evidence reviews', aboutFactSamples: 'high-confidence samples', aboutFactSnapshot: 'data snapshot',
+    scenShowAll: (n) => `Show all ${n} scenarios`, scenCollapse: 'Show less',
+    videoTitle: 'Related videos (external)', videoExternal: 'External content — not evidence',
+    inputPlaceholder: 'Ask a question, or pick a suggestion above…', languageLabel: 'Language', langSystem: 'System',
+    rename: 'Rename', delete: 'Delete', renamePrompt: 'Rename this conversation:', deletePrompt: 'Delete this conversation?',
+    roleLabel: 'Answer as', settingsLabel: 'Settings', helpLabel: 'Guide', capLabel: 'Tools',
+    historySearchPlaceholder: 'Search conversations…',
+    heroEyebrow: 'Evidence-centric AI opportunity agent',
+    heroTitle: 'Decide which AI scenario to build — with evidence, not vibes.',
+    heroLede: 'Ask a question, run a decision wizard, or open the evidence library. The LLM plans and writes, while 15,525 reviewed records, 2,848 high-confidence samples and 72 quoted sources keep every number grounded. Export a one-page PDF brief when you need to convince someone.',
+    heroCtaWizard: 'Start with the decision wizard', heroCtaEvidence: 'Browse evidence',
+    heroCtaAsk: 'Ask a question', heroCtaTour: 'Take a 60-second tour',
+    fcWizard: 'Choose a direction', fcWizardDesc: '5 questions → a shortlist tailored to your team, budget and risk.',
+    fcEvidence: 'Verify with quotes', fcEvidenceDesc: 'Filter by scenario, source, year and confidence; read the original span.',
+    fcPoc: 'Plan a PoC', fcPocDesc: '2 / 4 / 8-week milestones, roles, metrics, compliance checklist.',
+    fcPortfolio: 'Allocate a budget', fcPortfolioDesc: 'Given a team and timeline, what to build, what to drop.',
+    how1: '1 · Plan', how1Desc: 'The LLM turns your question into an intent, scenarios and tool calls.',
+    how2: '2 · Retrieve', how2Desc: 'Deterministic tools fetch scores, rankings and quoted evidence.',
+    how3: '3 · Write', how3Desc: 'The LLM writes the recommendation; numbers stay traceable to the data.',
+    statScenarios: 'AI scenarios', statReviews: 'evidence reviews', statQuotes: 'quoted sources', statSnapshot: 'data snapshot',
+    capWizard: 'Wizard', capEvidence: 'Evidence', capPoc: 'PoC plan', capPortfolio: 'Portfolio', capVideos: 'Videos', capSaved: 'Saved',
+    capWizardSub: '5 questions → shortlist', capEvidenceSub: 'quotes, sources, filters', capPocSub: '2 / 4 / 8 weeks', capPortfolioSub: 'team & budget fit', capVideosSub: 'external walkthroughs', capSavedSub: 'shortlist & notes',
+    roleFounder: 'Founder / startup', roleEnterprise: 'Enterprise / big co.', roleInvestor: 'Investor / research', rolePm: 'Product / PM',
+    tourNext: 'Next', tourPrev: 'Back', tourSkip: 'Skip', tourDone: 'Start exploring',
+    tour1Title: 'What OpenECRS does', tour1Body: 'It turns public AI-tooling signals into an evidence-backed recommendation: which AI application scenario is worth building, why, and what to do next.',
+    tour2Title: 'How it works', tour2Body: 'Every answer follows the same loop — the LLM plans, grounded tools retrieve data, the LLM writes. Numbers and quotes come from the tools, never from the model.',
+    tour3Title: 'Three ways to start', tour3Body: 'Use the decision wizard if you are exploring, ask a question directly, or open the evidence library to verify a claim.',
+    tour4Title: 'Models, language & output', tour4Body: 'Switch between API and local fine-tuned models at any time. Set the language to System or English/中文/日本語/Español in the sidebar. Export the current answer as a one-page PDF brief; history stays local.',
+    modelName: 'Model name', deleteModel: 'Delete', needsSetup: 'needs setup',
+    switchFailed: 'Switch failed: ', deleteConfirm: 'Delete this model profile?',
     engineApi: 'API · ', engineLocal: 'Local · ', engineRequired: 'LLM required',
     quick: ['Which scenario should we prioritise?', 'Compare Security, Compliance & Privacy vs Multi-agent',
             'Show evidence for Knowledge Management & Document QA', 'Give me a 3-month execution plan',
@@ -403,6 +730,45 @@ const I18N = {
     tagline: 'AI 应用场景机会雷达', subTitle: '· AI 应用场景机会雷达',
     newChat: '新对话', quickLabel: '快速提问', scenLabel: '场景索引',
     exportPdf: '导出 PDF', settingsTitle: '大模型设置',
+    profileMenuTitle: '模型', addModel: '+ 添加模型', manageModels: '设置',
+    historyLabel: '历史对话', noHistory: '还没有历史对话。', noResults: '没有匹配的对话。',
+    aboutLabel: '数据说明', answerSettingsLabel: '回答设置', prefLanguage: '语言', prefRole: '回答视角', fieldLanguage: '语言',
+    settingsTabModel: '模型', settingsTabPrefs: '偏好设置',
+    prefsDesc: '界面偏好。切换语言会重新加载工作区；回答视角从下一个问题起生效。',
+    prefsFoot: '偏好保存在本地；模型配置在「模型」页。',
+    langHint: '跟随系统会读取浏览器语言（zh / ja / es，否则英文）。', aboutTitle: '证据库与口径',
+    aboutSub: 'OpenECRS · 证据与方法',
+    aboutBody: 'OpenECRS 基于公开的 AI 工具信号，对 12 个 AI 应用场景做确定性评分；LLM 只负责规划与撰写。置信度来自规则影子审查、未经人工校准，结论应视为待真实用户验证的假设。',
+    aboutFactRecords: '条清洗记录', aboutFactReviews: '条证据审查', aboutFactSamples: '条高置信样本', aboutFactSnapshot: '数据快照',
+    scenShowAll: (n) => `查看全部 ${n} 个场景`, scenCollapse: '收起场景',
+    videoTitle: '相关视频（外部）', videoExternal: '外部内容，非证据库',
+    inputPlaceholder: '描述你的问题，或点上面的建议…', languageLabel: '语言', langSystem: '跟随系统',
+    rename: '重命名', delete: '删除', renamePrompt: '重命名这个对话：', deletePrompt: '删除这个对话？',
+    roleLabel: '回答视角', settingsLabel: '设置', helpLabel: '使用说明', capLabel: '工具',
+    historySearchPlaceholder: '搜索历史对话…',
+    heroEyebrow: '证据驱动的 AI 机会智能体',
+    heroTitle: '判断一个 AI 场景值不值得做——用证据，而不是感觉。',
+    heroLede: '你可以直接提问、用决策向导做短名单，或打开证据库核对原文。LLM 负责规划与撰写，15,525 条审查记录、2,848 条高置信样本和 72 条原文证据负责让每个数字可溯源。需要汇报时，一键导出一页纸 PDF 建议书。',
+    heroCtaWizard: '用决策向导开始', heroCtaEvidence: '浏览证据库',
+    heroCtaAsk: '直接提问', heroCtaTour: '用 60 秒了解',
+    fcWizard: '选方向', fcWizardDesc: '5 个问题，按团队、预算和风险给出短名单。',
+    fcEvidence: '核证据', fcEvidenceDesc: '按场景/来源/年份/置信度筛选，直接读原文。',
+    fcPoc: '排 PoC', fcPocDesc: '2/4/8 周里程碑、角色、指标、合规清单。',
+    fcPortfolio: '配预算', fcPortfolioDesc: '给定团队和时间，先做哪个、放弃哪个。',
+    how1: '1 · 规划', how1Desc: 'LLM 把问题拆成意图、场景和要调用的工具。',
+    how2: '2 · 检索', how2Desc: '离线工具返回评分、排名和原文证据。',
+    how3: '3 · 撰写', how3Desc: 'LLM 写建议，数字始终可回溯到数据。',
+    statScenarios: '个 AI 场景', statReviews: '条证据审查', statQuotes: '条原文引用', statSnapshot: '数据快照',
+    capWizard: '决策向导', capEvidence: '证据库', capPoc: 'PoC 计划', capPortfolio: '组合', capVideos: '视频', capSaved: '收藏',
+    capWizardSub: '5 问出短名单', capEvidenceSub: '原句/来源/筛选', capPocSub: '2/4/8 周', capPortfolioSub: '团队与预算', capVideosSub: '外部讲解', capSavedSub: '清单与笔记',
+    roleFounder: '创业 / 小团队', roleEnterprise: '大厂 / 企业', roleInvestor: '投资 / 研究', rolePm: '产品 / PM',
+    tourNext: '下一步', tourPrev: '上一步', tourSkip: '跳过', tourDone: '开始使用',
+    tour1Title: 'OpenECRS 是做什么的', tour1Body: '它把公开的 AI 工具信号变成有证据的判断：哪个 AI 应用场景值得做、为什么、下一步怎么做。',
+    tour2Title: '它怎么工作', tour2Body: '每次回答都走同一条链路——LLM 规划、离线工具检索、LLM 撰写。数字和原文来自工具，不是模型编的。',
+    tour3Title: '三种开始方式', tour3Body: '探索阶段用决策向导；已有问题直接提问；需要核对结论时打开证据库。',
+    tour4Title: '模型、语言与产出', tour4Body: '可随时切换 API 或本地微调模型；侧边栏语言支持跟随系统或 English/中文/日本語/Español；当前回答可导出为一页纸 PDF 建议书；历史对话保存在本地。',
+    modelName: '模型名称', deleteModel: '删除', needsSetup: '待配置',
+    switchFailed: '切换失败：', deleteConfirm: '删除这个模型配置？',
     engineApi: 'API · ', engineLocal: '本地 · ', engineRequired: '需要配置 LLM',
     quick: ['哪个场景最值得优先做？', '对比 安全合规 和 多智能体', '知识管理与文档问答 的证据',
             '给我一个三个月内的落地建议', '客户服务为什么价值高？'],
@@ -460,7 +826,60 @@ const I18N = {
     llmRequiredBody: '请先在设置中配置 API Key 或本地模型。'
   }
 };
-const T = I18N[LANG] || I18N.en;
+
+I18N.ja = {
+  title: 'OpenECRS · AI機会レーダー', tagline: 'AI機会レーダー', subTitle: '· AI機会レーダー',
+  newChat: '新しい会話', quickLabel: 'クイック質問', scenLabel: 'シナリオ', capLabel: 'ツール',
+  exportPdf: 'PDF出力', settingsTitle: 'LLM設定', engineRequired: 'LLM未設定',
+  historyLabel: '会話履歴', noHistory: 'まだ会話がありません。', noResults: '一致する会話がありません。',
+  rename: '名前を変更', delete: '削除', roleLabel: '回答の視点', settingsLabel: '設定', helpLabel: 'ガイド',
+  historySearchPlaceholder: '会話を検索…', languageLabel: '言語',
+  heroEyebrow: 'エビデンス中心のAI機会エージェント',
+  heroTitle: 'AIシナリオを「作るべきか」を、根拠で判断する。',
+  heroLede: '質問する、意思決定ウィザードを使う、エビデンスライブラリを開く。LLMが計画と執筆を担い、15,525件のレビュー・2,848件の高信頼サンプル・72件の原文引用が数字の根拠になります。必要なら1ページPDFに出力できます。',
+  heroCtaWizard: '意思決定ウィザードを開始', heroCtaEvidence: 'エビデンスを見る', heroCtaAsk: '質問する', heroCtaTour: '60秒ツアー',
+  fcWizard: '方向性を選ぶ', fcWizardDesc: '5つの質問から、チーム・予算・リスクに合う候補を提示。',
+  fcEvidence: '引用で確認', fcEvidenceDesc: 'シナリオ・出典・年・信頼度で絞り、原文を読む。',
+  fcPoc: 'PoCを計画', fcPocDesc: '2/4/8週間のマイルストーン、役割、指標、コンプライアンス。',
+  fcPortfolio: '予算を配分', fcPortfolioDesc: 'チームと期間から、作るもの・捨てるものを提案。',
+  how1: '1 · 計画', how1Desc: 'LLMが質問を意図・シナリオ・ツール呼び出しに分解します。',
+  how2: '2 · 検索', how2Desc: 'オフラインツールがスコア・ランキング・原文を取得します。',
+  how3: '3 · 執筆', how3Desc: 'LLMが提案を書き、数字はデータに追跡可能です。',
+  statScenarios: 'AIシナリオ', statReviews: '件のレビュー', statQuotes: '件の引用', statSnapshot: 'データ時点',
+  capWizard: 'ウィザード', capEvidence: 'エビデンス', capPoc: 'PoC計画', capPortfolio: 'ポートフォリオ', capVideos: '動画', capSaved: '保存',
+  capWizardSub: '5問で候補', capEvidenceSub: '原文・出典', capPocSub: '2/4/8週', capPortfolioSub: 'チームと予算', capVideosSub: '外部解説', capSavedSub: 'リストとメモ',
+  roleFounder: '創業者 / スタートアップ', roleEnterprise: '大企業', roleInvestor: '投資家 / 調査', rolePm: 'プロダクト / PM',
+  inputPlaceholder: '質問を入力するか、上の提案を選んでください…',
+  videoTitle: '参考動画（外部）', videoExternal: '外部コンテンツ・エビデンスではありません',
+  tourNext: '次へ', tourPrev: '戻る', tourSkip: 'スキップ', tourDone: '始める'
+};
+I18N.es = {
+  title: 'OpenECRS · Radar de oportunidades de IA', tagline: 'Radar de oportunidades de IA', subTitle: '· Radar de oportunidades de IA',
+  newChat: 'Nueva conversación', quickLabel: 'Preguntas rápidas', scenLabel: 'Escenarios', capLabel: 'Herramientas',
+  exportPdf: 'Exportar PDF', settingsTitle: 'Ajustes del LLM', engineRequired: 'LLM no configurado',
+  historyLabel: 'Conversaciones', noHistory: 'Aún no hay conversaciones.', noResults: 'Sin coincidencias.',
+  rename: 'Renombrar', delete: 'Eliminar', roleLabel: 'Responder como', settingsLabel: 'Ajustes', helpLabel: 'Guía',
+  historySearchPlaceholder: 'Buscar conversaciones…', languageLabel: 'Idioma',
+  heroEyebrow: 'Agente de oportunidades de IA basado en evidencia',
+  heroTitle: 'Decide qué escenario de IA construir — con evidencia, no con intuición.',
+  heroLede: 'Pregunta, usa el asistente de decisión o abre la biblioteca de evidencia. El LLM planifica y redacta; 15.525 revisiones, 2.848 muestras de alta confianza y 72 citas mantienen cada número trazable. Exporta un informe PDF de una página cuando lo necesites.',
+  heroCtaWizard: 'Empezar con el asistente', heroCtaEvidence: 'Ver evidencia', heroCtaAsk: 'Hacer una pregunta', heroCtaTour: 'Tour de 60 segundos',
+  fcWizard: 'Elegir dirección', fcWizardDesc: '5 preguntas → una lista corta según equipo, presupuesto y riesgo.',
+  fcEvidence: 'Verificar con citas', fcEvidenceDesc: 'Filtra por escenario, fuente, año y confianza; lee el texto original.',
+  fcPoc: 'Planificar un PoC', fcPocDesc: 'Hitos de 2/4/8 semanas, roles, métricas y cumplimiento.',
+  fcPortfolio: 'Asignar presupuesto', fcPortfolioDesc: 'Con equipo y plazo: qué construir y qué descartar.',
+  how1: '1 · Planificar', how1Desc: 'El LLM convierte tu pregunta en intención, escenarios y herramientas.',
+  how2: '2 · Recuperar', how2Desc: 'Las herramientas obtienen puntuaciones, rankings y citas.',
+  how3: '3 · Redactar', how3Desc: 'El LLM escribe la recomendación; los números siguen siendo trazables.',
+  statScenarios: 'escenarios de IA', statReviews: 'revisiones', statQuotes: 'citas', statSnapshot: 'corte de datos',
+  capWizard: 'Asistente', capEvidence: 'Evidencia', capPoc: 'Plan PoC', capPortfolio: 'Cartera', capVideos: 'Vídeos', capSaved: 'Guardados',
+  capWizardSub: '5 preguntas', capEvidenceSub: 'citas y fuentes', capPocSub: '2/4/8 semanas', capPortfolioSub: 'equipo y presupuesto', capVideosSub: 'explicaciones', capSavedSub: 'lista y notas',
+  roleFounder: 'Fundador / startup', roleEnterprise: 'Empresa / gran compañía', roleInvestor: 'Inversor / investigación', rolePm: 'Producto / PM',
+  inputPlaceholder: 'Escribe una pregunta o elige una sugerencia…',
+  videoTitle: 'Vídeos relacionados (externos)', videoExternal: 'Contenido externo, no es evidencia',
+  tourNext: 'Siguiente', tourPrev: 'Atrás', tourSkip: 'Omitir', tourDone: 'Empezar'
+};
+const T = Object.assign({}, I18N.en, I18N[LANG] || {});
 function t(key, ...args) {
   const v = T[key];
   return typeof v === 'function' ? v(...args) : v;
@@ -511,17 +930,54 @@ async function checkService(){
 }
 
 function applyStatic(){
-  document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : 'en';
+  document.documentElement.lang = ({zh: 'zh-CN', ja: 'ja', es: 'es'}[LANG] || 'en');
   document.title = t('title');
   $('brandSub').textContent = t('tagline');
   $('newChatLabel').textContent = t('newChat');
-  $('quickLabel').textContent = t('quickLabel');
+  if ($('quickLabel')) $('quickLabel').textContent = t('quickLabel');
   $('scenLabel').textContent = t('scenLabel');
-  $('subTitle').textContent = t('subTitle');
+  $('historyLabel').textContent = t('historyLabel');
+  if ($('historySearch')) $('historySearch').placeholder = t('historySearchPlaceholder');
+  if ($('langSelect')) {
+    $('langSelect').value = LANG_PREF;
+    const sysOpt = $('langSelect').querySelector('option[value="system"]');
+    if (sysOpt) sysOpt.textContent = t('langSystem');
+  }
+  if ($('roleLabel')) $('roleLabel').textContent = t('roleLabel');
+  if ($('settingsLabel')) $('settingsLabel').textContent = t('settingsLabel');
+  if ($('helpLabel')) $('helpLabel').textContent = t('helpLabel');
+  if ($('capLabel')) $('capLabel').textContent = t('capLabel');
+  if ($('prefLangLabel')) $('prefLangLabel').textContent = t('prefLanguage');
+  if ($('settingsTabModel')) $('settingsTabModel').textContent = t('settingsTabModel');
+  if ($('settingsTabPrefs')) $('settingsTabPrefs').textContent = t('settingsTabPrefs');
+  if ($('prefLangFieldLabel')) $('prefLangFieldLabel').textContent = t('prefLanguage');
+  if ($('prefRoleFieldLabel')) $('prefRoleFieldLabel').textContent = t('prefRole');
+  if ($('prefsDesc')) $('prefsDesc').textContent = t('prefsDesc');
+  if ($('prefsFoot')) $('prefsFoot').textContent = t('prefsFoot');
+  if ($('langHint')) $('langHint').textContent = t('langHint');
+  if ($('prefRoleLabel')) $('prefRoleLabel').textContent = t('prefRole');
+  if ($('answerSettingsLabel')) $('answerSettingsLabel').textContent = t('answerSettingsLabel');
+  if ($('aboutLabel')) $('aboutLabel').textContent = t('aboutLabel');
+  if ($('aboutTitle')) $('aboutTitle').textContent = t('aboutTitle');
+  if ($('aboutSub')) $('aboutSub').textContent = t('aboutSub');
+  if ($('aboutBody')) $('aboutBody').textContent = t('aboutBody');
+  if ($('userRole')) $('userRole').textContent = roleLabel(currentRole());
+  const facts = {
+    aboutFactRecords: '45,306', aboutFactReviews: '15,525',
+    aboutFactSamples: '2,848', aboutFactSnapshot: '2026-11-20'
+  };
+  if ($('aboutFacts')) $('aboutFacts').innerHTML = Object.keys(facts).map(k => `<div><b>${facts[k]}</b>${t(k)}</div>`).join('');
+  const caps = [t('capWizard'), t('capEvidence'), t('capPoc'), t('capPortfolio'), t('capVideos'), t('capSaved')];
+  const capSubs = [t('capWizardSub'), t('capEvidenceSub'), t('capPocSub'), t('capPortfolioSub'), t('capVideosSub'), t('capSavedSub')];
+  document.querySelectorAll('.cap-txt i').forEach((el, i) => { if (capSubs[i]) el.textContent = capSubs[i]; });
+  document.querySelectorAll('.cap-txt b').forEach((el, i) => { if (caps[i]) el.textContent = caps[i]; });
+  const roleText = {founder: t('roleFounder'), enterprise: t('roleEnterprise'), investor: t('roleInvestor'), pm: t('rolePm')};
+  document.querySelectorAll('#roleSelect option').forEach(o => { if (roleText[o.value]) o.textContent = roleText[o.value]; });
+  if ($('subTitle')) $('subTitle').textContent = t('subTitle');
   $('pdfTop').textContent = t('exportPdf');
   $('settingsBtn').title = t('settingsTitle');
   $('settingsBtn').setAttribute('aria-label', t('settingsTitle'));
-  $('input').placeholder = LANG === 'zh' ? '描述你的问题，或点上面的建议…' : 'Ask a question, or pick a suggestion above…';
+  $('input').placeholder = t('inputPlaceholder');
   $('footHint').textContent = t('footerHint');
   $('modalTitle').textContent = t('settingsTitle');
   $('modalSub').textContent = LANG === 'zh' ? 'LLM 配置' : 'LLM configuration';
@@ -532,32 +988,26 @@ function applyStatic(){
   $('fBaseModelLabel').textContent = t('baseModelLabel');
   $('fAdapterLabel').textContent = t('adapterLabel');
   $('localHint').textContent = t('localHint');
+  $('fNameLabel').textContent = t('modelName');
   $('testBtn').textContent = t('testBtn');
   $('saveBtn').textContent = t('saveBtn');
+  $('deleteProfile').textContent = t('deleteModel');
   $('modalFoot').innerHTML = LANG === 'zh'
     ? 'API Key 只保存在本机 <code>outputs/agent_ui/settings.json</code>（0600）；本地模式需要 <code>requirements-lora.txt</code> 与 Qwen2.5-3B-Instruct 基座。'
     : 'Keys are stored locally in <code>outputs/agent_ui/settings.json</code> (0600). Local mode needs <code>requirements-lora.txt</code> and the Qwen2.5-3B-Instruct base model.';
   $('menuBtn').setAttribute('aria-label', LANG === 'zh' ? '打开侧边栏' : 'Open sidebar');
   $('send').setAttribute('aria-label', LANG === 'zh' ? '发送' : 'Send');
-  document.querySelectorAll('#langSwitch button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
   document.querySelectorAll('#backendTabs button').forEach(b => b.classList.toggle('active', b.dataset.backend === CURRENT_BACKEND));
 }
 
 function updateEnginePill(){
-  const pill = $('enginePill');
-  if (!pill) return;
-  if (SETTINGS && SETTINGS.ready) {
-    if (SETTINGS.backend === 'api') {
-      pill.className = 'pill llm';
-      pill.innerHTML = `<span class="dot"></span>${t('engineApi')}${esc(SETTINGS.api.model || '')}`;
-    } else {
-      pill.className = 'pill llm';
-      const name = (SETTINGS.local.adapter || '').split('/').filter(Boolean).pop() || 'local';
-      pill.innerHTML = `<span class="dot"></span>${t('engineLocal')}${esc(name)}`;
-    }
-  } else {
-    pill.className = 'pill warn';
-    pill.innerHTML = `<span class="dot"></span>${t('engineRequired')}`;
+  const name = (SETTINGS && SETTINGS.name) ? SETTINGS.name : t('engineRequired');
+  if ($('profileLabel')) $('profileLabel').textContent = name;
+  if ($('composerModelLabel')) $('composerModelLabel').textContent = name;
+  const btn = $('profileBtn');
+  if (btn) {
+    btn.className = 'pill profile-btn' + (SETTINGS && SETTINGS.ready ? ' llm' : ' warn');
+    btn.title = t('settingsTitle');
   }
   const onboard = $('onboard');
   if (onboard) {
@@ -566,27 +1016,121 @@ function updateEnginePill(){
       $('onboardText').textContent = t('onboardTitle') + ' ' + t('onboardBody', SETTINGS.ready_detail || '');
     }
   }
+  if ($('modelMenu') && !$('modelMenu').hidden) renderModelMenu();
+}
+
+function modelMeta(p){
+  const backend = p.backend === 'local' ? 'Local' : 'API';
+  let detail = p.backend === 'local' ? (p.model || '').split('/').filter(Boolean).pop() : (p.model || '');
+  if (p.backend === 'api' && p.has_key && p.key_hint) detail += ' · ' + p.key_hint;
+  return backend + ' · ' + detail + (p.ready ? '' : ' · ' + t('needsSetup'));
+}
+
+function renderModelMenu(){
+  const list = $('modelMenuList');
+  if (!list) return;
+  list.innerHTML = '';
+  ((SETTINGS && SETTINGS.profiles) || []).forEach(p => {
+    const b = document.createElement('button');
+    b.className = 'model-row' + (p.active ? ' active' : '');
+    b.innerHTML = `<span class="mr-main"><span class="mr-name">${esc(p.name)}</span><span class="mr-meta">${esc(modelMeta(p))}</span></span><span class="mr-check">${p.active ? '✓' : ''}</span>`;
+    b.onclick = () => switchProfile(p.id);
+    list.appendChild(b);
+  });
+  if (!list.children.length) {
+    list.innerHTML = `<div class="side-empty">${t('noHistory')}</div>`;
+  }
+  $('modelMenuTitle').textContent = t('profileMenuTitle');
+  $('modelAdd').textContent = t('addModel');
+  $('modelManage').textContent = t('manageModels');
+}
+
+let menuAnchor = null;
+
+function openModelMenu(anchor){
+  if (!$('modelMenu').hidden && menuAnchor === anchor) { closeModelMenu(); return; }
+  menuAnchor = anchor;
+  renderModelMenu();
+  const menu = $('modelMenu');
+  menu.hidden = false;
+  const rect = anchor.getBoundingClientRect();
+  const mw = menu.offsetWidth || 330;
+  const mh = menu.offsetHeight || 240;
+  const left = Math.min(Math.max(8, rect.right - mw), window.innerWidth - mw - 8);
+  let top = rect.top - mh - 10;
+  if (top < 8) top = Math.min(rect.bottom + 10, window.innerHeight - mh - 8);
+  menu.style.left = left + 'px';
+  menu.style.top = Math.max(8, top) + 'px';
+}
+
+function closeModelMenu(){ const menu = $('modelMenu'); if (menu) menu.hidden = true; menuAnchor = null; }
+
+let toastTimer = null;
+function showToast(text){
+  const el = $('toast');
+  if (!el) return;
+  el.textContent = text;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 2200);
+}
+
+async function switchProfile(profileId){
+  try {
+    const res = await fetch('/api/active', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({profile_id: profileId})});
+    const data = await res.json();
+    if (!res.ok || data.error) { showToast(t('switchFailed') + (data.error || res.status)); return; }
+    SETTINGS = data;
+    updateEnginePill();
+    closeModelMenu();
+    showToast((SETTINGS.ready ? '' : t('needsSetup') + ' · ') + SETTINGS.name);
+    if (!SETTINGS.ready) openSettings(false);
+  } catch (err) { showToast(t('switchFailed') + err.message); }
 }
 
 function welcome(){
   inner.innerHTML = `
     <div class="msg assistant">
-      <div class="avatar">OE</div>
+      <div class="avatar avatar-logo" aria-hidden="true"></div>
       <div class="msg-body">
         <div class="msg-head">${t('msgHead')}</div>
-        <div class="card welcome">
-          <h3>${t('welcomeHead')}</h3>
-          <p>${t('welcomeText')}</p>
-          <div class="grid">
-            <div class="g"><div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20V8"/></svg></div><b>${t('tile1')}</b><span>${t('tile1Text')}</span></div>
-            <div class="g"><div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 13h6M10 17h4"/></svg></div><b>${t('tile2')}</b><span>${t('tile2Text')}</span></div>
-            <div class="g"><div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10"/><path d="M8 11l4 4 4-4"/><path d="M5 20h14"/></svg></div><b>${t('tile3')}</b><span>${t('tile3Text')}</span></div>
+        <div class="site-hero">
+          <div class="eyebrow">${t('heroEyebrow')}</div>
+          <h1>${t('heroTitle')}</h1>
+          <p class="lede">${t('heroLede')}</p>
+          <div class="hero-actions">
+            <button class="btn primary" data-feature="wizard">◎ ${t('heroCtaWizard')}</button>
+            <button class="btn" data-feature="evidence">▤ ${t('heroCtaEvidence')}</button>
+            <button class="btn" id="heroAsk">${t('heroCtaAsk')}</button>
+            <button class="btn" id="heroTour">${t('heroCtaTour')}</button>
+          </div>
+          <div class="feature-grid">
+            <button class="feature-card" data-feature="wizard"><span class="fc-ico">◎</span><b>${t('fcWizard')}</b><span>${t('fcWizardDesc')}</span></button>
+            <button class="feature-card" data-feature="evidence"><span class="fc-ico">▤</span><b>${t('fcEvidence')}</b><span>${t('fcEvidenceDesc')}</span></button>
+            <button class="feature-card" data-feature="poc"><span class="fc-ico">⌁</span><b>${t('fcPoc')}</b><span>${t('fcPocDesc')}</span></button>
+            <button class="feature-card" data-feature="portfolio"><span class="fc-ico">▦</span><b>${t('fcPortfolio')}</b><span>${t('fcPortfolioDesc')}</span></button>
+          </div>
+          <div class="how-strip">
+            <div class="how-step"><b>${t('how1')}</b><p>${t('how1Desc')}</p></div>
+            <div class="how-step"><b>${t('how2')}</b><p>${t('how2Desc')}</p></div>
+            <div class="how-step"><b>${t('how3')}</b><p>${t('how3Desc')}</p></div>
+          </div>
+          <div class="hero-stats">
+            <div><b>12</b>${t('statScenarios')}</div>
+            <div><b>15,525</b>${t('statReviews')}</div>
+            <div><b>72</b>${t('statQuotes')}</div>
+            <div><b>2026-11-20</b>${t('statSnapshot')}</div>
           </div>
         </div>
       </div>
     </div>`;
   inner.classList.add('empty');
   setChips(t('welcomeChips'));
+  const ask = $('heroAsk');
+  if (ask) ask.onclick = () => { $('input').focus(); scrollBottom(); };
+  const tourBtn = $('heroTour');
+  if (tourBtn) tourBtn.onclick = () => showTour(0);
 }
 
 function setChips(list){
@@ -612,7 +1156,7 @@ function addUser(text){
 function addTyping(){
   const el = document.createElement('div');
   el.className = 'msg assistant'; el.id = 'typing';
-  el.innerHTML = `<div class="avatar">OE</div><div class="msg-body"><div class="msg-head">${t('typing')}</div>
+  el.innerHTML = `<div class="avatar avatar-logo" aria-hidden="true"></div><div class="msg-body"><div class="msg-head">${t('typing')}</div>
     <div class="card"><div class="typing"><i></i><i></i><i></i></div></div></div>`;
   inner.classList.remove('empty');
   inner.appendChild(el);
@@ -688,6 +1232,17 @@ function evidenceList(list, limit = 3){
   return html + '</div>';
 }
 
+function videoList(list){
+  if (!list || !list.length) return '';
+  const cards = list.slice(0, 8).map(v => `
+    <a class="video-card" href="${esc(v.url)}" target="_blank" rel="noopener">
+      <span class="vc-plat">${esc(v.platform === 'bilibili' ? 'Bilibili' : 'YouTube')}</span>
+      <span class="vc-title">${esc(v.title)}</span>
+      <span class="vc-note">${esc(v.note || t('videoExternal'))}</span>
+    </a>`).join('');
+  return `<div class="sec"><div class="sec-title">${t('videoTitle')}</div><div class="videos">${cards}</div></div>`;
+}
+
 function actionList(list, title){
   if (!list || !list.length) return '';
   return `<div class="sec"><div class="sec-title">${title}</div><ol class="actions">${list.map(a => `<li>${esc(a)}</li>`).join('')}</ol></div>`;
@@ -709,18 +1264,22 @@ function traceBlock(a){
   return `<details class="trace"><summary>${t('traceTitle')} · ${esc((a.engine || {}).label || '')}</summary><ol>${steps}</ol></details>`;
 }
 
-function renderAnswer(a){
+function renderAnswer(a, restore){
   const names = a.scenarios || [];
   const single = names.length === 1 ? (a.metrics || {})[names[0]] : null;
   const eng = a.engine || {};
   const label = eng.label || (eng.backend === 'local' ? t('engineLocal') + (eng.model || '') : t('engineApi') + (eng.model || ''));
   const engTag = `<span class="eng-tag">${esc(label)}</span>`;
-  let html = `<div class="msg assistant"><div class="avatar">OE</div><div class="msg-body">
+  let html = `<div class="msg assistant"><div class="avatar avatar-logo" aria-hidden="true"></div><div class="msg-body">
     <div class="msg-head">OpenECRS · ${esc(a.heading || t('answer'))} · ${now()} ${engTag}</div>
-    <div class="card">
-      <div class="kicker">${t('kicker')}</div>
-      <div class="advice">${esc(a.advice)}</div>`;
-  if (a.reply) html += `<p class="reply">${esc(a.reply)}</p>`;
+    <div class="card">`;
+  if (a.kind === 'smalltalk') {
+    html += `<div class="reply" style="margin:0;color:var(--ink);font-size:14px">${esc(a.advice)}</div>`;
+    if (a.reply) html += `<p class="reply">${esc(a.reply)}</p>`;
+  } else {
+    html += `<div class="kicker">${t('kicker')}</div><div class="advice">${esc(a.advice)}</div>`;
+    if (a.reply) html += `<p class="reply">${esc(a.reply)}</p>`;
+  }
   if (single) html += statsTiles(single);
   if (names.length === 2 && a.metrics) {
     html += `<div class="stats">${names.map(n => {
@@ -733,29 +1292,37 @@ function renderAnswer(a){
   if (a.comparison && a.comparison.length) html += comparisonTable(a.comparison);
   if (single) html += metricsTable(single);
   if (a.evidence && a.evidence.length) html += evidenceList(a.evidence);
-  if (a.actions && a.actions.length) html += actionList(a.actions, t('actionsTitle'));
-  if (a.risks && a.risks.length) html += actionList(a.risks, t('risksTitle'));
+  if (a.videos && a.videos.length) html += videoList(a.videos);
+  if (a.kind !== 'smalltalk') {
+    if (a.actions && a.actions.length) html += actionList(a.actions, t('actionsTitle'));
+    if (a.risks && a.risks.length) html += actionList(a.risks, t('risksTitle'));
+  }
   html += traceBlock(a);
-  html += `<div class="msg-actions">
-      <button class="btn primary" data-pdf>${t('exportBrief')}</button>
-      <button class="btn" data-copy>${t('copyBtn')}</button>
-    </div></div></div></div>`;
+  if (a.kind !== 'smalltalk') {
+    html += `<div class="msg-actions">
+        <button class="btn primary" data-pdf>${t('exportBrief')}</button>
+        <button class="btn" data-copy>${t('copyBtn')}</button>
+      </div>`;
+  }
+  html += `</div></div></div>`;
   const wrap = document.createElement('div');
   wrap.innerHTML = html;
   const node = wrap.firstElementChild;
-  node.querySelector('[data-pdf]').onclick = () => exportPDF(node);
-  node.querySelector('[data-copy]').onclick = (ev) => copyAnswer(a, ev.target);
+  const pdfBtn = node.querySelector('[data-pdf]');
+  const copyBtn = node.querySelector('[data-copy]');
+  if (pdfBtn) pdfBtn.onclick = () => exportPDF(node);
+  if (copyBtn) copyBtn.onclick = (ev) => copyAnswer(a, ev.target);
   inner.classList.remove('empty');
   inner.appendChild(node);
-  if (a.chips && a.chips.length) setChips(a.chips);
+  if (a.chips && a.chips.length && !restore) setChips(a.chips);
   LAST_ANSWER = a;
-  scrollBottom();
+  if (!restore) scrollBottom();
 }
 
 function renderError(message, hint){
   const el = document.createElement('div');
   el.className = 'msg assistant';
-  el.innerHTML = `<div class="avatar">OE</div><div class="msg-body"><div class="msg-head">${t('errorHead')}</div>
+  el.innerHTML = `<div class="avatar avatar-logo" aria-hidden="true"></div><div class="msg-body"><div class="msg-head">${t('errorHead')}</div>
     <div class="card error"><div class="advice">${esc(message)}</div>
     <p class="reply">${esc(hint || t('errorBody'))}</p></div></div>`;
   inner.classList.remove('empty');
@@ -766,7 +1333,7 @@ function renderError(message, hint){
 async function send(text){
   if (busy) return;
   if (!SETTINGS || !SETTINGS.ready) {
-    openSettings();
+    openSettings(false);
     updateEnginePill();
     return;
   }
@@ -781,7 +1348,7 @@ async function send(text){
   try {
     const {res, data} = await fetchJSON('/api/chat', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({session: SESSION, message, lang: LANG})
+      body: JSON.stringify({session: SESSION, message, lang: LANG, role: currentRole()})
     });
     removeTyping();
     if (!res.ok || data.error) {
@@ -795,6 +1362,8 @@ async function send(text){
       return;
     }
     renderAnswer(data);
+    localStorage.setItem('openecrs-session', SESSION);
+    refreshHistory();
   } catch (err) {
     removeTyping();
     const msg = err.name === 'AbortError'
@@ -843,27 +1412,57 @@ function copyAnswer(a, btn){
   }).catch(() => alert(t('copyFail')));
 }
 
+let SIDEBAR_SCENARIOS = [];
+let scenExpanded = false;
+
+function renderScenarioList(){
+  const scen = $('scen');
+  if (!scen) return;
+  scen.innerHTML = '';
+  const list = scenExpanded ? SIDEBAR_SCENARIOS : SIDEBAR_SCENARIOS.slice(0, 5);
+  list.forEach(s => {
+    const name = LANG === 'zh' ? s.name : s.name_en;
+    const b = document.createElement('button');
+    b.title = name + ' · ' + Number(s.opportunity).toFixed(1);
+    b.innerHTML = `<span class="rk">${s.rank || ''}</span><span class="nm">${esc(name)}</span><span class="sc">${Number(s.opportunity).toFixed(1)}</span>`;
+    b.onclick = () => {
+      closeNav();
+      if (window.OCFeatures && window.OCFeatures.openDetail) window.OCFeatures.openDetail(s.id);
+      else send(t('scenarioAsk', name));
+    };
+    scen.appendChild(b);
+  });
+  if (SIDEBAR_SCENARIOS.length > 5) {
+    const more = document.createElement('button');
+    more.className = 'scen-more';
+    more.textContent = scenExpanded ? t('scenCollapse') : t('scenShowAll', SIDEBAR_SCENARIOS.length);
+    more.onclick = () => { scenExpanded = !scenExpanded; renderScenarioList(); };
+    scen.appendChild(more);
+  }
+}
+
 async function loadSidebar(){
   try {
     const res = await fetch('/api/data');
     const data = await res.json();
+    SIDEBAR_SCENARIOS = (data.scenarios || []).map(s => ({
+      id: s.name, name: s.name, name_en: s.name_en || s.name, rank: s.rank,
+      opportunity: s.opportunity, route: LANG === 'zh' ? s.route : (s.route_en || s.route)
+    }));
     const meta = Object.assign({evidence_records: 15525, data_cutoff: '2026-11-20',
                                 records_clean: 45306, high_conf_samples: 2848}, data.meta || {});
-    $('sideFoot').innerHTML = t('sideFoot', meta);
-    const scen = $('scen');
-    scen.innerHTML = '';
-    (data.scenarios || []).forEach(s => {
-      const name = LANG === 'zh' ? s.name : (s.name_en || s.name);
-      const b = document.createElement('button');
-      b.innerHTML = `<span class="rk">${s.rank}</span><span class="nm">${esc(name)}</span><span class="sc">${Number(s.opportunity).toFixed(1)}</span>`;
-      b.onclick = () => { closeNav(); send(t('scenarioAsk', name)); };
-      scen.appendChild(b);
-    });
-  } catch (err) { /* keep fallback footer */ }
+    const um = $('userMeta');
+    if (um) um.textContent = `${Number(meta.evidence_records).toLocaleString()} ${t('statReviews')} · ${meta.data_cutoff}`;
+    renderScenarioList();
+    if (window.OCFeatures && window.OCFeatures.onScenarios && !window.__ocScenarioPushed) {
+      try { window.OCFeatures.onScenarios(SIDEBAR_SCENARIOS); window.__ocScenarioPushed = true; } catch (e) {}
+    }
+  } catch (err) { /* keep static footer */ }
 }
 
 function bindChips(){
   const q = $('quick');
+  if (!q) return;
   q.innerHTML = '';
   (t('quick') || []).forEach(text => {
     const b = document.createElement('button');
@@ -876,10 +1475,11 @@ function bindChips(){
 function openNav(){ $('app').classList.add('nav-open'); }
 function closeNav(){ $('app').classList.remove('nav-open'); }
 
-function switchLang(lang){
-  localStorage.setItem('openecrs-lang', lang);
+function switchLang(pref){
+  localStorage.setItem('openecrs-lang-pref', pref);
   const url = new URL(location.href);
-  url.searchParams.set('lang', lang);
+  if (pref === 'system') url.searchParams.delete('lang');
+  else url.searchParams.set('lang', pref);
   url.searchParams.delete('q');
   location.replace(url.toString());
 }
@@ -891,19 +1491,32 @@ function setBackend(backend){
   $('localPanel').hidden = CURRENT_BACKEND !== 'local';
 }
 
-function openSettings(){ fillSettingsForm(); $('modal').hidden = false; }
+function setSettingsTab(tab){
+  document.querySelectorAll('#settingsTabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  $('settingsModelPanel').hidden = tab !== 'model';
+  $('settingsPrefsPanel').hidden = tab !== 'prefs';
+}
+
+function openSettings(addNew){
+  ADDING_PROFILE = !!addNew;
+  EDITING_ID = ADDING_PROFILE ? null : (SETTINGS ? SETTINGS.active : null);
+  fillSettingsForm();
+  setSettingsTab('model');
+  $('modal').hidden = false;
+}
 function closeSettings(){ $('modal').hidden = true; }
 
 function fillSettingsForm(){
   if (SETTINGS) {
-    CURRENT_BACKEND = SETTINGS.backend || 'api';
+    CURRENT_BACKEND = ADDING_PROFILE ? 'api' : (SETTINGS.backend || 'api');
+    $('fName').value = ADDING_PROFILE ? '' : (SETTINGS.name || '');
     $('fBase').value = SETTINGS.api.base_url || '';
     $('fModel').value = SETTINGS.api.model || '';
     $('fBaseModel').value = SETTINGS.local.base_model || '';
     $('fAdapter').value = SETTINGS.local.adapter || '';
     $('fKey').value = '';
     const hint = $('keyHint');
-    if (SETTINGS.api.has_key) {
+    if (SETTINGS.api.has_key && !ADDING_PROFILE) {
       const envNote = SETTINGS.api.key_source && SETTINGS.api.key_source.indexOf('env:') === 0 ? t('envNote') : '';
       hint.textContent = t('keySaved', SETTINGS.api.key_hint || '', envNote);
     } else {
@@ -911,18 +1524,24 @@ function fillSettingsForm(){
     }
   }
   setBackend(CURRENT_BACKEND);
+  $('deleteProfile').hidden = ADDING_PROFILE || !SETTINGS || (SETTINGS.profiles || []).length <= 1;
+  $('deleteProfile').textContent = t('deleteModel');
   const result = $('testResult');
   result.className = 'test-result';
   result.textContent = '';
 }
 
-function collectForm(){
-  const body = {backend: CURRENT_BACKEND,
-                api: {base_url: $('fBase').value.trim(), model: $('fModel').value.trim()},
-                local: {base_model: $('fBaseModel').value.trim(), adapter: $('fAdapter').value.trim()}};
+function collectProfile(){
+  const profile = {
+    name: $('fName').value.trim(),
+    backend: CURRENT_BACKEND,
+    api: {base_url: $('fBase').value.trim(), model: $('fModel').value.trim()},
+    local: {base_model: $('fBaseModel').value.trim(), adapter: $('fAdapter').value.trim()}
+  };
+  if (!ADDING_PROFILE && EDITING_ID) profile.id = EDITING_ID;
   const key = $('fKey').value.trim();
-  if (key) body.api.api_key = key;
-  return body;
+  if (key) profile.api.api_key = key;
+  return profile;
 }
 
 async function saveSettings(){
@@ -930,7 +1549,8 @@ async function saveSettings(){
   result.className = 'test-result';
   result.textContent = t('saving');
   try {
-    const res = await fetch('/api/settings', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(collectForm())});
+    const res = await fetch('/api/settings', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({profile: collectProfile()})});
     const data = await res.json();
     if (!res.ok || data.error) {
       result.className = 'test-result err';
@@ -942,10 +1562,25 @@ async function saveSettings(){
     fillSettingsForm();
     result.className = SETTINGS.ready ? 'test-result ok' : 'test-result err';
     result.textContent = SETTINGS.ready ? t('saved') : t('saveFailed', SETTINGS.ready_detail || '');
+    if (SETTINGS.ready) setTimeout(closeSettings, 350);
   } catch (err) {
     result.className = 'test-result err';
     result.textContent = t('saveFailed', err.message);
   }
+}
+
+async function deleteCurrentProfile(){
+  if (!EDITING_ID) return;
+  if (!confirm(t('deleteConfirm'))) return;
+  try {
+    const res = await fetch('/api/settings', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({delete_profile: EDITING_ID})});
+    const data = await res.json();
+    if (!res.ok || data.error) { alert(t('saveFailed', data.error || res.status)); return; }
+    SETTINGS = data;
+    updateEnginePill();
+    closeSettings();
+  } catch (err) { alert(t('saveFailed', err.message)); }
 }
 
 async function testAPI(){
@@ -953,7 +1588,8 @@ async function testAPI(){
   result.className = 'test-result';
   result.textContent = t('testing');
   try {
-    const res = await fetch('/api/test', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(collectForm())});
+    const res = await fetch('/api/test', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({profile: collectProfile()})});
     const data = await res.json();
     if (data.ok) {
       result.className = 'test-result ok';
@@ -976,14 +1612,26 @@ async function loadSettings(){
   } catch (err) { /* offline banner handles it */ }
 }
 
-$('menuBtn').onclick = openNav;
+$('menuBtn').onclick = toggleSidebar;
+$('profileCardBtn').onclick = (event) => { event.stopPropagation(); toggleProfilePopover(); };
+$('brandHome').onclick = () => { if ($('app').classList.contains('side-collapsed')) expandSidebar(); };
+$('collapseBtn').onclick = toggleSidebar;
+$('railExpand').onclick = expandSidebar;
+$('railNew').onclick = () => $('newchat').click();
+$('railHistory').onclick = () => { expandSidebar(); setTimeout(() => $('historySearch') && $('historySearch').focus(), 220); };
+$('railSettings').onclick = () => openSettings(false);
+$('aboutBtn').onclick = () => { closeProfilePopover(); openAbout(); };
+$('aboutClose').onclick = closeAbout;
+$('aboutMask').onclick = closeAbout;
 $('scrim').onclick = closeNav;
 $('newchat').onclick = () => {
   SESSION = (crypto.randomUUID ? crypto.randomUUID() : 's-' + Date.now());
+  localStorage.setItem('openecrs-session', SESSION);
   inner.innerHTML = '';
   welcome();
   closeNav();
   setChips(t('welcomeChips'));
+  refreshHistory();
   $('input').focus();
 };
 $('send').onclick = () => send();
@@ -998,22 +1646,273 @@ $('input').addEventListener('input', (e) => {
   e.target.style.height = 'auto';
   e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
 });
-document.querySelectorAll('#langSwitch button').forEach(b => b.addEventListener('click', () => switchLang(b.dataset.lang)));
 document.querySelectorAll('#backendTabs button').forEach(b => b.addEventListener('click', () => setBackend(b.dataset.backend)));
-$('settingsBtn').onclick = openSettings;
-$('onboardBtn').onclick = openSettings;
+$('answerSettingsBtn').onclick = () => { closeProfilePopover(); openSettings(false); setSettingsTab('prefs'); };
+$('settingsBtn').onclick = () => { closeProfilePopover(); openSettings(false); };
+$('onboardBtn').onclick = () => openSettings(false);
 $('closeModal').onclick = closeSettings;
 $('modalMask').onclick = closeSettings;
 $('saveBtn').onclick = saveSettings;
 $('testBtn').onclick = testAPI;
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSettings(); });
 
+function renderSimpleAssistant(text){
+  const el = document.createElement('div');
+  el.className = 'msg assistant';
+  el.innerHTML = `<div class="avatar avatar-logo" aria-hidden="true"></div><div class="msg-body"><div class="msg-head">${t('msgHead')}</div>
+    <div class="card"><div class="reply" style="margin:0;color:var(--ink)">${esc(text)}</div></div></div>`;
+  inner.appendChild(el);
+}
+
+let historyTimer = null;
+
+async function refreshHistory(){
+  try {
+    const q = ($('historySearch') && $('historySearch').value || '').trim();
+    const res = await fetch('/api/sessions' + (q ? '?q=' + encodeURIComponent(q) : ''));
+    const data = await res.json();
+    const box = $('history');
+    box.innerHTML = '';
+    const items = data.sessions || [];
+    if (!items.length) {
+      box.innerHTML = `<div class="side-empty">${t(q ? 'noResults' : 'noHistory')}</div>`;
+      return;
+    }
+    items.slice(0, 12).forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'history-row' + (item.id === SESSION ? ' active' : '');
+      const main = document.createElement('button');
+      main.className = 'h-main';
+      main.textContent = item.title || item.preview || item.id.slice(0, 8);
+      main.title = item.title || '';
+      main.onclick = () => loadSession(item.id);
+      const ren = document.createElement('button');
+      ren.className = 'h-act'; ren.textContent = '✎'; ren.title = t('rename');
+      ren.onclick = (ev) => { ev.stopPropagation(); renameSession(item.id, item.title || ''); };
+      const del = document.createElement('button');
+      del.className = 'h-act'; del.textContent = '×'; del.title = t('delete');
+      del.onclick = (ev) => { ev.stopPropagation(); deleteSession(item.id); };
+      row.appendChild(main); row.appendChild(ren); row.appendChild(del);
+      box.appendChild(row);
+    });
+  } catch (err) { /* ignore */ }
+}
+
+async function renameSession(sid, current){
+  const title = prompt(t('renamePrompt'), current || '');
+  if (!title || !title.trim()) return;
+  try {
+    await fetch('/api/session/rename', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({sid, title: title.trim()})});
+    refreshHistory();
+  } catch (err) { showToast(t('saveFailed', err.message)); }
+}
+
+async function deleteSession(sid){
+  if (!confirm(t('deletePrompt'))) return;
+  try {
+    await fetch('/api/session?sid=' + encodeURIComponent(sid), {method: 'DELETE'});
+    if (sid === SESSION) {
+      SESSION = (crypto.randomUUID ? crypto.randomUUID() : 's-' + Date.now());
+      localStorage.setItem('openecrs-session', SESSION);
+      inner.innerHTML = '';
+      welcome();
+    }
+    refreshHistory();
+  } catch (err) { showToast(t('saveFailed', err.message)); }
+}
+
+async function loadSession(sid){
+  try {
+    const res = await fetch('/api/session?sid=' + encodeURIComponent(sid));
+    if (!res.ok) return;
+    const data = await res.json();
+    SESSION = sid;
+    localStorage.setItem('openecrs-session', sid);
+    inner.innerHTML = '';
+    inner.classList.remove('empty');
+    const messages = data.messages || [];
+    messages.forEach(m => {
+      if (m.role === 'user') addUser(m.content);
+      else if (m.answer) renderAnswer(m.answer, true);
+      else renderSimpleAssistant(m.content);
+    });
+    if (!messages.length) welcome();
+    LAST_ANSWER = null;
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].role === 'assistant' && messages[i].answer) { LAST_ANSWER = messages[i].answer; break; }
+    }
+    thread.scrollTop = thread.scrollHeight;
+    closeNav();
+    refreshHistory();
+  } catch (err) { /* ignore */ }
+}
+
+async function restoreSession(){
+  try {
+    const res = await fetch('/api/session?sid=' + encodeURIComponent(SESSION));
+    if (!res.ok) { welcome(); return; }
+    const data = await res.json();
+    if (!data.messages || !data.messages.length) { welcome(); return; }
+    inner.innerHTML = '';
+    data.messages.forEach(m => {
+      if (m.role === 'user') addUser(m.content);
+      else if (m.answer) renderAnswer(m.answer, true);
+      else renderSimpleAssistant(m.content);
+    });
+    for (let i = data.messages.length - 1; i >= 0; i -= 1) {
+      if (data.messages[i].role === 'assistant' && data.messages[i].answer) { LAST_ANSWER = data.messages[i].answer; break; }
+    }
+    thread.scrollTop = thread.scrollHeight;
+  } catch (err) { welcome(); }
+}
+
+$('profileBtn').onclick = (event) => { event.stopPropagation(); openModelMenu($('profileBtn')); };
+$('composerModelBtn').onclick = (event) => { event.stopPropagation(); openModelMenu($('composerModelBtn')); };
+$('modelMenuClose').onclick = closeModelMenu;
+$('modelAdd').onclick = (event) => { event.stopPropagation(); closeModelMenu(); openSettings(true); };
+$('modelManage').onclick = (event) => { event.stopPropagation(); closeModelMenu(); openSettings(false); };
+$('settingsTabModel').onclick = () => setSettingsTab('model');
+$('settingsTabPrefs').onclick = () => setSettingsTab('prefs');
+$('deleteProfile').onclick = deleteCurrentProfile;
+$('helpBtn').onclick = () => { closeProfilePopover(); showTour(0); };
+$('historyRefresh').onclick = () => refreshHistory();
+$('historySearch').oninput = () => {
+  clearTimeout(historyTimer);
+  historyTimer = setTimeout(refreshHistory, 250);
+};
+$('langSelect').onchange = () => switchLang($('langSelect').value);
+$('roleSelect').onchange = () => {
+  localStorage.setItem('openecrs-role', $('roleSelect').value);
+  if ($('userRole')) $('userRole').textContent = roleLabel($('roleSelect').value);
+  showToast(t('roleLabel') + ': ' + $('roleSelect').options[$('roleSelect').selectedIndex].textContent);
+};
+$('tourNext').onclick = () => {
+  if (tourIndex >= TOUR_STEPS.length - 1) hideTour();
+  else showTour(tourIndex + 1);
+};
+$('tourPrev').onclick = () => showTour(tourIndex - 1);
+$('tourSkip').onclick = hideTour;
+$('tourMask').onclick = hideTour;
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.profile-wrap2')) closeProfilePopover();
+  if (event.target.closest('#modelMenu') || event.target.closest('#profileBtn') || event.target.closest('#composerModelBtn')) return;
+  closeModelMenu();
+});
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeModelMenu(); closeAbout(); closeProfilePopover(); } });
+window.addEventListener('resize', closeModelMenu);
+window.addEventListener('scroll', closeModelMenu, true);
+
+function roleLabel(role){
+  return ({founder: t('roleFounder'), enterprise: t('roleEnterprise'),
+           investor: t('roleInvestor'), pm: t('rolePm')})[role] || role;
+}
+
+function toggleProfilePopover(){
+  const pop = $('profilePopover');
+  const btn = $('profileCardBtn');
+  if (!pop) return;
+  pop.hidden = !pop.hidden;
+  if (btn) btn.setAttribute('aria-expanded', String(!pop.hidden));
+}
+
+function closeProfilePopover(){
+  const pop = $('profilePopover');
+  if (pop && !pop.hidden) { pop.hidden = true; const btn = $('profileCardBtn'); if (btn) btn.setAttribute('aria-expanded','false'); }
+}
+
+function toggleSidebar(){
+  if (window.innerWidth <= 900) { $('app').classList.toggle('nav-open'); return; }
+  const collapsed = $('app').classList.toggle('side-collapsed');
+  localStorage.setItem('openecrs-sidebar', collapsed ? 'collapsed' : 'open');
+}
+
+function expandSidebar(){
+  $('app').classList.remove('side-collapsed');
+  localStorage.setItem('openecrs-sidebar', 'open');
+}
+
+function openAbout(){
+  $('aboutModal').hidden = false;
+}
+function closeAbout(){
+  $('aboutModal').hidden = true;
+}
+
+function currentRole(){
+  return ($('roleSelect') && $('roleSelect').value) || localStorage.getItem('openecrs-role') || 'founder';
+}
+
+const TOUR_STEPS = [
+  {title: t('tour1Title'), body: t('tour1Body')},
+  {title: t('tour2Title'), body: t('tour2Body')},
+  {title: t('tour3Title'), body: t('tour3Body')},
+  {title: t('tour4Title'), body: t('tour4Body')}
+];
+let tourIndex = 0;
+
+function updateTour(){
+  const step = TOUR_STEPS[tourIndex];
+  $('tourStep').textContent = (tourIndex + 1) + ' / ' + TOUR_STEPS.length;
+  $('tourTitle').textContent = step.title;
+  $('tourBody').textContent = step.body;
+  $('tourPrev').textContent = t('tourPrev');
+  $('tourPrev').disabled = tourIndex === 0;
+  $('tourNext').textContent = tourIndex === TOUR_STEPS.length - 1 ? t('tourDone') : t('tourNext');
+  $('tourSkip').textContent = t('tourSkip');
+}
+
+function showTour(index){
+  tourIndex = Math.max(0, Math.min(TOUR_STEPS.length - 1, index || 0));
+  updateTour();
+  $('tour').hidden = false;
+}
+
+function hideTour(){
+  $('tour').hidden = true;
+  localStorage.setItem('openecrs-tour-v1', 'done');
+}
+
+function mountFeatures(){
+  const ctx = {
+    t: (key, ...args) => t(key, ...args),
+    lang: LANG,
+    esc,
+    getRole: currentRole,
+    getScenarios: () => SIDEBAR_SCENARIOS,
+    openChat: (prompt) => { closeNav(); send(prompt); },
+    notify: (text) => showToast(text)
+  };
+  if (window.OCFeatures && typeof window.OCFeatures.mount === 'function') {
+    try { window.OCFeatures.mount(ctx); } catch (err) { console.warn('feature mount failed', err); }
+    return;
+  }
+  if (!window.__ocFeatureTries) window.__ocFeatureTries = 0;
+  window.__ocFeatureTries += 1;
+  if (window.__ocFeatureTries < 80) setTimeout(mountFeatures, 120);
+}
+
+if (localStorage.getItem('openecrs-sidebar') === 'collapsed' && window.innerWidth > 900) {
+  $('app').classList.add('side-collapsed');
+}
+document.querySelectorAll('.logo, .user-avatar, .brand-home').forEach(el => {
+  el.addEventListener('contextmenu', (event) => event.preventDefault());
+  el.addEventListener('dragstart', (event) => event.preventDefault());
+});
 applyStatic();
+const savedRole = localStorage.getItem('openecrs-role');
+if (savedRole && $('roleSelect')) $('roleSelect').value = savedRole;
+SESSION = localStorage.getItem('openecrs-session') || SESSION;
+localStorage.setItem('openecrs-session', SESSION);
 welcome();
+restoreSession();
 bindChips();
 loadSidebar();
 loadSettings();
 checkService();
+refreshHistory();
+mountFeatures();
+if (!localStorage.getItem('openecrs-tour-v1')) setTimeout(() => showTour(0), 1400);
 const preset = new URLSearchParams(location.search).get('q');
 if (preset) setTimeout(() => send(preset), 250);
 
